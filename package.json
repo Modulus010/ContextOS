@@ -1,5 +1,5 @@
 {
-  "name": "nexus:-life-context-os",
+  "name": "nexus-life-context-os",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,7 +11,7 @@
   "dependencies": {
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "@google/genai": "^1.30.0",
+    "openai": "^4.52.0",
     "recharts": "^3.5.0"
   },
   "devDependencies": {

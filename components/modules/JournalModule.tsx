@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { JournalEntry } from '../../types';
 import { IconBookOpen, IconSend, IconSparkles } from '../Icons';
-import { analyzeJournalEntry } from '../../services/geminiService';
+import { analyzeJournalEntry } from '../../services/aiService';
 
 interface JournalModuleProps {
   entries: JournalEntry[];
@@ -26,7 +26,7 @@ export const JournalModule: React.FC<JournalModuleProps> = ({ entries, setEntrie
     if (!content.trim()) return;
 
     setIsAnalyzing(true);
-    
+
     // Optimistic UI update
     const tempId = crypto.randomUUID();
     const newEntry: JournalEntry = {
@@ -42,9 +42,9 @@ export const JournalModule: React.FC<JournalModuleProps> = ({ entries, setEntrie
 
     // Fetch AI reflection
     const reflection = await analyzeJournalEntry(content, mood);
-    
-    setEntries(prev => prev.map(entry => 
-        entry.id === tempId ? { ...entry, aiReflection: reflection } : entry
+
+    setEntries(prev => prev.map(entry =>
+      entry.id === tempId ? { ...entry, aiReflection: reflection } : entry
     ));
     setIsAnalyzing(false);
   };
@@ -60,7 +60,7 @@ export const JournalModule: React.FC<JournalModuleProps> = ({ entries, setEntrie
       </div>
 
       <div className="flex-1 flex flex-col md:flex-row h-full overflow-hidden">
-        
+
         {/* Editor Area */}
         <div className="flex-1 p-6 flex flex-col border-r border-slate-50 dark:border-slate-800">
           <div className="flex gap-2 mb-4 justify-center">
@@ -75,45 +75,45 @@ export const JournalModule: React.FC<JournalModuleProps> = ({ entries, setEntrie
               </button>
             ))}
           </div>
-          
+
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="今天感觉如何？是什么转移了你的注意力？"
             className="flex-1 w-full resize-none p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-800 focus:outline-none transition-colors placeholder-slate-400"
           />
-          
+
           <div className="mt-4 flex justify-end">
-             <button
-                onClick={handleSubmit}
-                disabled={!content.trim() || isAnalyzing}
-                className="bg-violet-600 dark:bg-violet-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-violet-700 dark:hover:bg-violet-600 disabled:opacity-50 transition-colors flex items-center gap-2"
-             >
-               {isAnalyzing ? '分析中...' : <>记录日志 <IconSend className="w-4 h-4" /></>}
-             </button>
+            <button
+              onClick={handleSubmit}
+              disabled={!content.trim() || isAnalyzing}
+              className="bg-violet-600 dark:bg-violet-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-violet-700 dark:hover:bg-violet-600 disabled:opacity-50 transition-colors flex items-center gap-2"
+            >
+              {isAnalyzing ? '分析中...' : <>记录日志 <IconSend className="w-4 h-4" /></>}
+            </button>
           </div>
         </div>
 
         {/* History Stream */}
         <div className="w-full md:w-80 bg-slate-50/50 dark:bg-slate-950/30 overflow-y-auto p-4 space-y-4">
-           {entries.length === 0 && <p className="text-center text-slate-400 mt-10">暂无记录。</p>}
-           {entries.map(entry => (
-             <div key={entry.id} className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm transition-colors">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-xs font-bold text-slate-400 uppercase">
-                    {new Date(entry.timestamp).toLocaleDateString()}
-                  </span>
-                  <span className="text-lg">{MOODS.find(m => m.value === entry.mood)?.label}</span>
+          {entries.length === 0 && <p className="text-center text-slate-400 mt-10">暂无记录。</p>}
+          {entries.map(entry => (
+            <div key={entry.id} className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm transition-colors">
+              <div className="flex justify-between items-start mb-2">
+                <span className="text-xs font-bold text-slate-400 uppercase">
+                  {new Date(entry.timestamp).toLocaleDateString()}
+                </span>
+                <span className="text-lg">{MOODS.find(m => m.value === entry.mood)?.label}</span>
+              </div>
+              <p className="text-slate-700 dark:text-slate-300 text-sm mb-3 whitespace-pre-wrap">{entry.content}</p>
+              {entry.aiReflection && (
+                <div className="bg-violet-50 dark:bg-violet-900/20 p-3 rounded-lg flex gap-3 items-start">
+                  <IconSparkles className="w-4 h-4 text-violet-500 dark:text-violet-400 mt-0.5 shrink-0" />
+                  <p className="text-xs text-violet-800 dark:text-violet-200 italic">{entry.aiReflection}</p>
                 </div>
-                <p className="text-slate-700 dark:text-slate-300 text-sm mb-3 whitespace-pre-wrap">{entry.content}</p>
-                {entry.aiReflection && (
-                  <div className="bg-violet-50 dark:bg-violet-900/20 p-3 rounded-lg flex gap-3 items-start">
-                     <IconSparkles className="w-4 h-4 text-violet-500 dark:text-violet-400 mt-0.5 shrink-0" />
-                     <p className="text-xs text-violet-800 dark:text-violet-200 italic">{entry.aiReflection}</p>
-                  </div>
-                )}
-             </div>
-           ))}
+              )}
+            </div>
+          ))}
         </div>
 
       </div>
