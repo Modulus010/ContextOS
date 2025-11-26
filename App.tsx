@@ -50,11 +50,11 @@ function App() {
   ];
 
   return (
-    <div className="flex h-screen bg-slate-50 text-slate-900 font-sans">
+    <div className="flex h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
       {/* Sidebar Navigation (Desktop) */}
-      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 h-full p-4">
+      <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 h-full p-4 transition-colors duration-200">
         <div className="mb-8 px-4 mt-4">
-          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">
+          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400">
             Nexus OS
           </h1>
           <p className="text-xs text-slate-400 font-medium">语境管理器 v1.0</p>
@@ -69,8 +69,8 @@ function App() {
                  onClick={() => setActiveTab(item.id)}
                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                    activeTab === item.id 
-                     ? 'bg-slate-900 text-white shadow-md shadow-slate-200' 
-                     : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                     ? 'bg-slate-900 dark:bg-indigo-600 text-white shadow-md shadow-slate-200 dark:shadow-none' 
+                     : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200'
                  }`}
                >
                  <Icon className="w-5 h-5" />
@@ -80,7 +80,7 @@ function App() {
           })}
         </nav>
 
-        <div className="mt-auto px-4 py-4 border-t border-slate-100 text-xs text-slate-400">
+        <div className="mt-auto px-4 py-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-400">
           <p>认知负荷：已优化</p>
         </div>
       </aside>
@@ -98,7 +98,7 @@ function App() {
         </div>
 
         {/* Mobile Navigation Bar */}
-        <div className="md:hidden bg-white border-t border-slate-200 px-6 py-3 flex justify-between items-center z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <div className="md:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-6 py-3 flex justify-between items-center z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
            {navItems.map(item => {
              const Icon = item.icon;
              const isActive = activeTab === item.id;
@@ -106,9 +106,9 @@ function App() {
                <button
                  key={item.id}
                  onClick={() => setActiveTab(item.id)}
-                 className={`flex flex-col items-center gap-1 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`}
+                 className={`flex flex-col items-center gap-1 ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'}`}
                >
-                 <Icon className={`w-6 h-6 ${isActive ? 'fill-indigo-100' : ''}`} />
+                 <Icon className={`w-6 h-6 ${isActive ? 'fill-indigo-100 dark:fill-indigo-900/30' : ''}`} />
                  <span className="text-[10px] font-medium">{item.label}</span>
                </button>
              );

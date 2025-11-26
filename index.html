@@ -5,11 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Nexus Context OS</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'media',
+        theme: {
+          extend: {
+            colors: {
+              slate: {
+                850: '#1e293b',
+                900: '#0f172a',
+                950: '#020617',
+              }
+            }
+          }
+        }
+      }
+    </script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
       body {
         font-family: 'Inter', sans-serif;
-        background-color: #f8fafc;
       }
       /* Custom scrollbar for webkit */
       ::-webkit-scrollbar {
@@ -25,6 +40,22 @@
       }
       ::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
+      }
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #020617; /* slate-950 */
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #475569;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #64748b;
+        }
+      }
+      @media (prefers-color-scheme: light) {
+        body {
+          background-color: #f8fafc;
+        }
       }
     </style>
   <script type="importmap">

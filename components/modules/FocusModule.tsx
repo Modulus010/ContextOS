@@ -76,13 +76,13 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
   const PRESETS = [15, 25, 50, 90];
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 h-full flex flex-col">
-      <div className="p-6 border-b border-slate-100 bg-slate-50/50">
-        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 h-full flex flex-col transition-colors">
+      <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
           <IconClock className="text-amber-500" />
           深度工作
         </h2>
-        <p className="text-sm text-slate-500 mt-1">单任务处理以减少认知残留。</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">单任务处理以减少认知残留。</p>
       </div>
 
       <div className="flex-1 flex flex-col items-center p-6 space-y-6 overflow-y-auto">
@@ -95,7 +95,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
            <select 
              value={selectedTaskId}
              onChange={(e) => setSelectedTaskId(e.target.value)}
-             className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:ring-2 focus:ring-amber-500 outline-none"
+             className="w-full p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-amber-500 outline-none transition-colors"
              disabled={isActive}
            >
              <option value="">无特定任务</option>
@@ -116,7 +116,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
                     stroke="currentColor"
                     strokeWidth="8"
                     fill="transparent"
-                    className="text-slate-100"
+                    className="text-slate-100 dark:text-slate-800 transition-colors"
                 />
                 <circle
                     cx="112"
@@ -130,7 +130,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
                     className="text-amber-500 transition-all duration-1000 ease-linear"
                 />
             </svg>
-            <div className="text-5xl font-mono font-bold text-slate-800 z-10">
+            <div className="text-5xl font-mono font-bold text-slate-800 dark:text-slate-100 z-10">
                 {formatTime(timeLeft)}
             </div>
         </div>
@@ -141,7 +141,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
                 onClick={toggleTimer}
                 className={`px-8 py-3 rounded-full font-semibold shadow-lg transition-transform active:scale-95 flex items-center gap-2 ${
                     isActive 
-                    ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' 
+                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700' 
                     : 'bg-amber-500 text-white hover:bg-amber-600'
                 }`}
             >
@@ -149,7 +149,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
             </button>
             <button
                 onClick={resetTimer}
-                className="px-4 py-3 text-slate-400 hover:text-slate-600 font-medium transition-colors"
+                className="px-4 py-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 font-medium transition-colors"
             >
                 重置
             </button>
@@ -168,8 +168,8 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
                  onClick={() => setDuration(preset)}
                  className={`flex-1 py-1 rounded text-xs font-medium border transition-colors ${
                    duration === preset 
-                     ? 'bg-amber-100 text-amber-700 border-amber-200' 
-                     : 'bg-white text-slate-500 border-slate-200 hover:border-amber-200'
+                     ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-700' 
+                     : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-amber-200 dark:hover:border-amber-700'
                  }`}
                >
                  {preset}分
@@ -184,7 +184,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
              step="5"
              value={duration}
              onChange={(e) => setDuration(Number(e.target.value))}
-             className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+             className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
            />
         </div>
 

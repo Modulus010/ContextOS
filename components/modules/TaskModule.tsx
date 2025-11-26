@@ -94,9 +94,9 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
 
   const priorityColor = (p: TaskPriority) => {
     switch (p) {
-      case TaskPriority.HIGH: return 'text-rose-600 bg-rose-50 border-rose-100';
-      case TaskPriority.MEDIUM: return 'text-amber-600 bg-amber-50 border-amber-100';
-      case TaskPriority.LOW: return 'text-slate-600 bg-slate-50 border-slate-100';
+      case TaskPriority.HIGH: return 'text-rose-600 bg-rose-50 border-rose-100 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-900/50';
+      case TaskPriority.MEDIUM: return 'text-amber-600 bg-amber-50 border-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-900/50';
+      case TaskPriority.LOW: return 'text-slate-600 bg-slate-50 border-slate-100 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700';
       default: return 'text-slate-600';
     }
   };
@@ -124,16 +124,16 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
   });
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 h-full flex flex-col overflow-hidden">
-      <div className="p-6 border-b border-slate-100 bg-slate-50/50">
-        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-          <IconCheckSquare className="text-indigo-600" />
+    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 h-full flex flex-col overflow-hidden transition-colors">
+      <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+          <IconCheckSquare className="text-indigo-600 dark:text-indigo-400" />
           任务流
         </h2>
-        <p className="text-sm text-slate-500 mt-1">捕捉任务以减轻认知负担。</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">捕捉任务以减轻认知负担。</p>
       </div>
 
-      <div className="p-4 bg-white border-b border-slate-100">
+      <div className="p-4 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
         <form onSubmit={addTask} className="flex gap-2 items-center">
           <div className="relative flex-1">
              <input
@@ -141,14 +141,14 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
                 value={newTaskTitle}
                 onChange={(e) => setNewTaskTitle(e.target.value)}
                 placeholder="需要完成什么？"
-                className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all"
+                className="w-full pl-4 pr-12 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all text-slate-900 dark:text-white placeholder-slate-400"
              />
           </div>
           
           <select 
             value={priority}
             onChange={(e) => setPriority(e.target.value as TaskPriority)}
-            className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value={TaskPriority.LOW}>低</option>
             <option value={TaskPriority.MEDIUM}>中</option>
@@ -157,7 +157,7 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
 
           <button
             type="submit"
-            className="p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
+            className="p-3 bg-indigo-600 dark:bg-indigo-500 text-white rounded-xl hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors shadow-sm"
           >
             <IconPlus className="w-6 h-6" />
           </button>
@@ -175,8 +175,8 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
               key={task.id}
               className={`rounded-xl border transition-all duration-200 overflow-hidden ${
                 task.status === TaskStatus.DONE
-                  ? 'bg-slate-50 border-slate-100 opacity-60'
-                  : 'bg-white border-slate-200 shadow-sm hover:shadow-md'
+                  ? 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800 opacity-60'
+                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md'
               }`}
             >
               <div className="flex items-center justify-between p-3">
@@ -186,14 +186,14 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
                     className={`w-5 h-5 rounded border flex items-center justify-center transition-colors shrink-0 ${
                         task.status === TaskStatus.DONE
                         ? 'bg-indigo-600 border-indigo-600 text-white'
-                        : 'border-slate-300 hover:border-indigo-500'
+                        : 'border-slate-300 dark:border-slate-600 hover:border-indigo-500'
                     }`}
                    >
                     {task.status === TaskStatus.DONE && <IconCheckSquare className="w-3 h-3" />}
                    </button>
                    
                    <div className="flex flex-col flex-1">
-                       <span className={`text-sm font-medium ${task.status === TaskStatus.DONE ? 'line-through text-slate-400' : 'text-slate-700'}`}>
+                       <span className={`text-sm font-medium ${task.status === TaskStatus.DONE ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200'}`}>
                         {task.title}
                        </span>
                        <div className="flex gap-2 mt-1">
@@ -209,7 +209,7 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
                         <button
                             onClick={() => breakDownTask(task)}
                             disabled={loadingTasks.has(task.id)}
-                            className={`p-2 rounded-lg text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 transition-colors ${loadingTasks.has(task.id) ? 'animate-pulse text-indigo-400' : ''}`}
+                            className={`p-2 rounded-lg text-slate-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${loadingTasks.has(task.id) ? 'animate-pulse text-indigo-400' : ''}`}
                             title="AI 拆解：将任务碎片化"
                         >
                             <IconZap className="w-4 h-4" />
@@ -219,7 +219,7 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
                     {task.subtasks && task.subtasks.length > 0 && (
                         <button 
                             onClick={() => toggleExpand(task.id)}
-                            className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 transition-colors"
+                            className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                         >
                            {expandedTasks.has(task.id) ? <IconChevronUp className="w-4 h-4" /> : <IconChevronDown className="w-4 h-4" />}
                         </button>
@@ -227,7 +227,7 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
 
                     <button
                         onClick={() => deleteTask(task.id)}
-                        className="p-2 text-slate-300 hover:text-rose-500 transition-colors"
+                        className="p-2 text-slate-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 transition-colors"
                     >
                         <IconTrash className="w-4 h-4" />
                     </button>
@@ -236,18 +236,18 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
 
               {/* Subtasks */}
               {expandedTasks.has(task.id) && task.subtasks && task.subtasks.length > 0 && (
-                 <div className="bg-slate-50/50 border-t border-slate-100 p-3 pl-10 space-y-2">
+                 <div className="bg-slate-50/50 dark:bg-slate-950/30 border-t border-slate-100 dark:border-slate-800 p-3 pl-10 space-y-2">
                     {task.subtasks.map(st => (
                         <div key={st.id} className="flex items-center gap-2">
                             <button
                                 onClick={() => toggleSubtask(task.id, st.id)}
                                 className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                                    st.completed ? 'bg-indigo-400 border-indigo-400' : 'border-slate-300 bg-white'
+                                    st.completed ? 'bg-indigo-400 border-indigo-400' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'
                                 }`}
                             >
                                 {st.completed && <IconCheckSquare className="w-2.5 h-2.5 text-white" />}
                             </button>
-                            <span className={`text-xs ${st.completed ? 'line-through text-slate-400' : 'text-slate-600'}`}>
+                            <span className={`text-xs ${st.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-300'}`}>
                                 {st.title}
                             </span>
                         </div>
