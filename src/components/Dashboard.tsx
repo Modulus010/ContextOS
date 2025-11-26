@@ -1,0 +1,163 @@
+import React, { useEffect, useState } from 'react';
+import { GlobalState } from '../types';
+import { generateContextualInsight } from '../services/aiService';
+import { useDailyStats } from '../hooks';
+import { IconSparkles, IconLayoutDashboard, IconCheckSquare, IconClock, IconWallet } from './Icons';
+import { formatTime } from '../utils';
+
+interface DashboardProps {
+    state: GlobalState;
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
+    const [insight, setInsight] = useState<string>("正在分析您的上下文模式...");
+    const [loading, setLoading] = useState(false);
+    const stats = useDailyStats(state);
+
+    useEffect(() => {
+        const fetchInsight = async () => {
+            if (state.tasks.length === 0 && state.focusSessions.length === 0) {
+                setInsight("Nexus 已就绪。从添加任务或记录心情开始吧。");
+                return;
+            }
+            setLoading(true);
+            const text = await generateContextualInsight(state);
+            setInsight(text);
+            setLoading(false);
+        };
+
+        fetchInsight();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [state.tasks.length, state.focusSessions.length, state.transactions.length, state.journalEntries.length]);
+
+    const recentActivities = [
+        ...state.tasks.filter(t => t.status === 'done').map(t => ({ type: 'task', data: t, time: t.createdAt })),
+        ...state.focusSessions.map(s => ({ type: 'focus', data: s, time: s.timestamp })),
+        ...state.journalEntries.map(j => ({ type: 'journal', data: j, time: j.timestamp }))
+    ].sort((a, b) => b.time - a.time).slice(0, 5);
+
+    return (
+        <div className="h-full flex flex-col gap-6 p-2 md:p-0">
+            {/* Header */}
+            <div className="flex items-center gap-2 mb-2">
+                <IconLayoutDashboard className="text-slate-400" />
+                <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">上下文概览</h1>
+            </div>
+
+            {/* AI Insight Card */}
+            <div className="bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-800 dark:to-violet-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <IconSparkles className="w-32 h-32" />
+                </div>
+                <div className="relative z-10">
+                    <h3 className="font-semibold text-indigo-100 flex items-center gap-2 mb-2">
+                        <IconSparkles className="w-4 h-4" /> Nexus 洞察
+                    </h3>
+                    <p className={`text-lg md:text-xl font-medium leading-relaxed ${loading ? 'animate-pulse' : ''}`}>
+                        "{insight}"
+                    </p>
+                </div>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <StatCard
+                    icon={IconCheckSquare}
+                    label="已完成任务"
+                    value={stats.completedToday}
+                    bgColor="bg-blue-50 dark:bg-blue-900/30"
+                    textColor="text-blue-500 dark:text-blue-400"
+                />
+                <StatCard
+                    icon={IconClock}
+                    label="专注时间"
+                    value={`${stats.focusMinutes}分钟`}
+                    bgColor="bg-amber-50 dark:bg-amber-900/30"
+                    textColor="text-amber-500 dark:text-amber-400"
+                />
+                <StatCard
+                    icon={IconWallet}
+                    label="今日支出"
+                    value={`$${stats.spentToday}`}
+                    bgColor="bg-emerald-50 dark:bg-emerald-900/30"
+                    textColor="text-emerald-500 dark:text-emerald-400"
+                />
+            </div>
+
+            {/* Recent Activity Mini-Feed */}
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 flex-1 transition-colors">
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">活动流</h3>
+                <div className="space-y-4">
+                    {recentActivities.length > 0 ? (
+                        recentActivities.map((item: any, idx) => (
+                            <ActivityItem key={idx} item={item} />
+                        ))
+                    ) : (
+                        <p className="text-slate-400 italic text-sm">暂无活动记录。</p>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+interface StatCardProps {
+    icon: React.FC<React.SVGProps<SVGSVGElement>>;
+    label: string;
+    value: string | number;
+    bgColor: string;
+    textColor: string;
+}
+
+const StatCard: React.FC<StatCardProps> = ({ icon: Icon, label, value, bgColor, textColor }) => (
+    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center justify-between transition-colors">
+        <div>
+            <p className="text-sm text-slate-400 font-medium uppercase tracking-wider">{label}</p>
+            <p className="text-3xl font-bold text-slate-800 dark:text-slate-100 mt-1">{value}</p>
+        </div>
+        <div className={`w-12 h-12 rounded-full ${bgColor} flex items-center justify-center ${textColor}`}>
+            <Icon className="w-6 h-6" />
+        </div>
+    </div>
+);
+
+interface ActivityItemProps {
+    item: {
+        type: 'task' | 'focus' | 'journal';
+        data: any;
+        time: number;
+    };
+}
+
+const ActivityItem: React.FC<ActivityItemProps> = ({ item }) => {
+    const colorMap = {
+        task: 'bg-blue-500',
+        focus: 'bg-amber-500',
+        journal: 'bg-violet-500',
+    };
+
+    const getText = () => {
+        switch (item.type) {
+            case 'task':
+                return `完成任务：${item.data.title}`;
+            case 'focus':
+                return `专注了 ${Math.floor(item.data.durationSeconds / 60)} 分钟`;
+            case 'journal':
+                return `记录心情：${item.data.mood}`;
+            default:
+                return '';
+        }
+    };
+
+    return (
+        <div className="flex gap-4 items-start pb-4 border-b border-slate-50 dark:border-slate-800 last:border-0">
+            <div className="mt-1">
+                <div className={`w-2 h-2 rounded-full ${colorMap[item.type]}`}></div>
+            </div>
+            <div>
+                <p className="text-sm text-slate-800 dark:text-slate-200">{getText()}</p>
+                <p className="text-xs text-slate-400">{formatTime(item.time)}</p>
+            </div>
+        </div>
+    );
+};
