@@ -4,16 +4,16 @@ import { GlobalState } from "../types";
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const SYSTEM_INSTRUCTION = `
-You are a Cognitive Psychology Expert and Productivity Coach built into a "Life Context OS" called Nexus. 
-Your goal is to help the user understand the connections between their tasks, focus levels, spending habits, and mood.
-You should provide brief, actionable, and empathetic insights.
-Avoid generic advice. Look for patterns in the provided JSON data.
-For example:
-- If spending is high and mood is low -> Suggest "Retail Therapy" check.
-- If focus is low and tasks are high -> Suggest prioritizing or taking a break.
-- If journaling is positive but tasks are unfinished -> Validate the good mood but gently nudge towards one small task.
+你是一个构建在“Nexus 生活语境操作系统”中的认知心理学专家和生产力教练。
+你的目标是帮助用户理解他们的任务、专注度、消费习惯和情绪之间的联系。
+请提供简短、可操作且富有同理心的中文洞察。
+避免泛泛而谈。请从提供的 JSON 数据中寻找模式。
+例如：
+- 如果支出很高且情绪低落 -> 建议检查是否在进行“零售疗法”。
+- 如果专注度低且任务堆积 -> 建议重新排列优先级或休息一下。
+- 如果日记内容积极但任务未完成 -> 肯定其良好的状态，但温和地推动完成一个小任务。
 
-Keep the tone professional yet warm. Max 3 sentences.
+保持语气专业且温暖。最多 3 句话。
 `;
 
 export const generateContextualInsight = async (state: GlobalState): Promise<string> => {
@@ -32,10 +32,10 @@ export const generateContextualInsight = async (state: GlobalState): Promise<str
     };
 
     const prompt = `
-      Current User Context (Today):
+      当前用户语境 (今日):
       ${JSON.stringify(dailyContext, null, 2)}
       
-      Based on this snapshot, provide a specific cognitive insight or recommendation.
+      基于这个快照，提供一个具体的认知洞察或建议（使用中文）。
     `;
 
     const response = await ai.models.generateContent({
@@ -47,10 +47,10 @@ export const generateContextualInsight = async (state: GlobalState): Promise<str
       }
     });
 
-    return response.text || "Keep tracking your day to unlock insights.";
+    return response.text || "持续记录你的一天以解锁更多洞察。";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "Nexus AI is currently recalibrating. Continue your flow.";
+    return "Nexus AI 正在重新校准。请继续保持心流。";
   }
 };
 
@@ -58,11 +58,11 @@ export const analyzeJournalEntry = async (entry: string, mood: string): Promise<
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
-            contents: `The user wrote this journal entry with a mood of '${mood}': "${entry}". \n\n Provide a single sentence of psychological validation or a gentle question to deepen their reflection.`,
+            contents: `用户写下了这篇日记，心情是 '${mood}': "${entry}". \n\n 请提供一句心理学上的肯定，或一个温和的问题来加深他们的反思（使用中文）。`,
         });
-        return response.text || "Thank you for sharing.";
+        return response.text || "感谢你的分享。";
     } catch (error) {
-        return "Reflection saved.";
+        return "反思已保存。";
     }
 }
 
@@ -70,7 +70,7 @@ export const generateSubtasks = async (taskTitle: string): Promise<string[]> => 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
-      contents: `Break down the task "${taskTitle}" into 3-5 smaller, actionable subtasks to reduce cognitive load.`,
+      contents: `将任务 "${taskTitle}" 拆解为 3-5 个更小的、可执行的子任务，以减少认知负荷。请直接返回 JSON 字符串数组（中文）。`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -89,6 +89,6 @@ export const generateSubtasks = async (taskTitle: string): Promise<string[]> => 
     return [];
   } catch (error) {
     console.error("Gemini Subtask Error:", error);
-    return ["Identify the first small step", "Set a 5 minute timer", "Execute step one"];
+    return ["确定第一小步", "设定5分钟计时", "执行第一步"];
   }
 }

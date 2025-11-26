@@ -48,12 +48,12 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions, setT
         <div>
           <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
             <IconWallet className="text-emerald-600" />
-            Cash Flow
+            现金流
           </h2>
-          <p className="text-sm text-slate-500 mt-1">Track value exchange.</p>
+          <p className="text-sm text-slate-500 mt-1">追踪价值交换。</p>
         </div>
         <div className="text-right">
-          <p className="text-xs text-slate-400 uppercase tracking-wider">Balance</p>
+          <p className="text-xs text-slate-400 uppercase tracking-wider">余额</p>
           <p className={`text-2xl font-mono font-bold ${totalBalance >= 0 ? 'text-slate-800' : 'text-rose-600'}`}>
             ${totalBalance.toFixed(2)}
           </p>
@@ -71,27 +71,27 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions, setT
                    onClick={() => setType(TransactionType.EXPENSE)}
                    className={`flex-1 py-1 text-xs font-bold rounded-md transition-colors ${type === TransactionType.EXPENSE ? 'bg-rose-100 text-rose-700' : 'bg-white text-slate-400'}`}
                  >
-                   Expense
+                   支出
                  </button>
                  <button 
                    type="button" 
                    onClick={() => setType(TransactionType.INCOME)}
                    className={`flex-1 py-1 text-xs font-bold rounded-md transition-colors ${type === TransactionType.INCOME ? 'bg-emerald-100 text-emerald-700' : 'bg-white text-slate-400'}`}
                  >
-                   Income
+                   收入
                  </button>
               </div>
               <div className="flex gap-2">
                 <input 
                   type="text" 
-                  placeholder="Desc" 
+                  placeholder="描述" 
                   className="flex-1 p-2 rounded-lg border text-sm"
                   value={description}
                   onChange={e => setDescription(e.target.value)}
                 />
                 <input 
                   type="number" 
-                  placeholder="$" 
+                  placeholder="¥" 
                   className="w-20 p-2 rounded-lg border text-sm"
                   value={amount}
                   onChange={e => setAmount(e.target.value)}
@@ -120,7 +120,7 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions, setT
         {/* Right: Visualization */}
         <div className="bg-slate-50 rounded-xl border border-slate-100 p-4 flex flex-col">
             <h3 className="text-sm font-semibold text-slate-600 mb-4 flex items-center gap-2">
-              <IconTrendingUp className="w-4 h-4" /> Recent Activity
+              <IconTrendingUp className="w-4 h-4" /> 近期活动
             </h3>
             <div className="flex-1 min-h-[150px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -140,7 +140,7 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions, setT
               </ResponsiveContainer>
             </div>
             <div className="mt-4 text-xs text-slate-400 text-center">
-               Spending impacts psychological safety. Track consciously.
+               消费影响心理安全感。请有意识地记录。
             </div>
         </div>
 

@@ -1,5 +1,5 @@
 {
   "name": "Nexus: Life Context OS",
-  "description": "A cognitive-psychology based personal management system integrating Todo, Pomodoro, Finance, and Journaling with Gemini AI insights to reduce context-switching costs.",
+  "description": "基于认知心理学的个人管理系统，集成待办事项、番茄钟、记账和日记功能，利用 Gemini AI 提供洞察，旨在降低语境切换成本。",
   "requestFramePermissions": []
 }

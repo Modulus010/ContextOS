@@ -8,14 +8,14 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
-  const [insight, setInsight] = useState<string>("Analyzing your context pattern...");
+  const [insight, setInsight] = useState<string>("正在分析您的语境模式...");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // Debounced or simple effect to get insight
     const fetchInsight = async () => {
       if (state.tasks.length === 0 && state.focusSessions.length === 0) {
-        setInsight("Nexus is ready. Start by adding a task or logging a mood.");
+        setInsight("Nexus 已就绪。从添加任务或记录心情开始吧。");
         return;
       }
       setLoading(true);
@@ -42,7 +42,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
       {/* Header */}
       <div className="flex items-center gap-2 mb-2">
         <IconLayoutDashboard className="text-slate-400" />
-        <h1 className="text-2xl font-bold text-slate-800">Context Overview</h1>
+        <h1 className="text-2xl font-bold text-slate-800">语境概览</h1>
       </div>
 
       {/* AI Insight Card */}
@@ -52,7 +52,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
         </div>
         <div className="relative z-10">
           <h3 className="font-semibold text-indigo-100 flex items-center gap-2 mb-2">
-            <IconSparkles className="w-4 h-4" /> Nexus Insight
+            <IconSparkles className="w-4 h-4" /> Nexus 洞察
           </h3>
           <p className={`text-lg md:text-xl font-medium leading-relaxed ${loading ? 'animate-pulse' : ''}`}>
             "{insight}"
@@ -64,7 +64,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between">
            <div>
-             <p className="text-sm text-slate-400 font-medium uppercase tracking-wider">Tasks Done</p>
+             <p className="text-sm text-slate-400 font-medium uppercase tracking-wider">已完成任务</p>
              <p className="text-3xl font-bold text-slate-800 mt-1">{completedToday}</p>
            </div>
            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
@@ -74,8 +74,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
 
         <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between">
            <div>
-             <p className="text-sm text-slate-400 font-medium uppercase tracking-wider">Focus Time</p>
-             <p className="text-3xl font-bold text-slate-800 mt-1">{focusMinutes}<span className="text-sm font-normal text-slate-400 ml-1">min</span></p>
+             <p className="text-sm text-slate-400 font-medium uppercase tracking-wider">专注时间</p>
+             <p className="text-3xl font-bold text-slate-800 mt-1">{focusMinutes}<span className="text-sm font-normal text-slate-400 ml-1">分钟</span></p>
            </div>
            <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center text-amber-500">
              <IconClock className="w-6 h-6" />
@@ -84,7 +84,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
 
         <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between">
            <div>
-             <p className="text-sm text-slate-400 font-medium uppercase tracking-wider">Spent Today</p>
+             <p className="text-sm text-slate-400 font-medium uppercase tracking-wider">今日支出</p>
              <p className="text-3xl font-bold text-slate-800 mt-1">${spentToday}</p>
            </div>
            <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
@@ -95,7 +95,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
 
       {/* Recent Activity Mini-Feed */}
       <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-6 flex-1">
-        <h3 className="text-lg font-bold text-slate-800 mb-4">Activity Stream</h3>
+        <h3 className="text-lg font-bold text-slate-800 mb-4">活动流</h3>
         <div className="space-y-4">
            {[
              ...state.tasks.filter(t => t.status === 'done').map(t => ({ type: 'task', data: t, time: t.createdAt })),
@@ -110,9 +110,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
                </div>
                <div>
                  <p className="text-sm text-slate-800">
-                    {item.type === 'task' && `Completed task: ${item.data.title}`}
-                    {item.type === 'focus' && `Focused for ${Math.floor(item.data.durationSeconds / 60)} minutes`}
-                    {item.type === 'journal' && `Journaled: ${item.data.mood} mood`}
+                    {item.type === 'task' && `完成任务：${item.data.title}`}
+                    {item.type === 'focus' && `专注了 ${Math.floor(item.data.durationSeconds / 60)} 分钟`}
+                    {item.type === 'journal' && `记录心情：${item.data.mood}`}
                  </p>
                  <p className="text-xs text-slate-400">
                    {new Date(item.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
@@ -120,7 +120,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
                </div>
              </div>
            ))}
-           {state.tasks.length === 0 && <p className="text-slate-400 italic text-sm">No activity recorded yet.</p>}
+           {state.tasks.length === 0 && <p className="text-slate-400 italic text-sm">暂无活动记录。</p>}
         </div>
       </div>
     </div>

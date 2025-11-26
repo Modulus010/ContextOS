@@ -54,7 +54,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
     };
     setSessions(prev => [newSession, ...prev]);
     if (Notification.permission === 'granted') {
-      new Notification("Nexus Focus", { body: "Focus session complete. Take a break." });
+      new Notification("Nexus 专注", { body: "专注时段结束。休息一下吧。" });
     }
   }, [duration, selectedTaskId, setSessions]);
 
@@ -80,9 +80,9 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
       <div className="p-6 border-b border-slate-100 bg-slate-50/50">
         <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
           <IconClock className="text-amber-500" />
-          Deep Work
+          深度工作
         </h2>
-        <p className="text-sm text-slate-500 mt-1">Single-tasking to reduce cognitive residue.</p>
+        <p className="text-sm text-slate-500 mt-1">单任务处理以减少认知残留。</p>
       </div>
 
       <div className="flex-1 flex flex-col items-center p-6 space-y-6 overflow-y-auto">
@@ -90,7 +90,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
         {/* Task Selection */}
         <div className="w-full max-w-xs">
            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-             Intention
+             意图
            </label>
            <select 
              value={selectedTaskId}
@@ -98,7 +98,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
              className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:ring-2 focus:ring-amber-500 outline-none"
              disabled={isActive}
            >
-             <option value="">No specific task</option>
+             <option value="">无特定任务</option>
              {activeTasks.map(t => (
                <option key={t.id} value={t.id}>{t.title}</option>
              ))}
@@ -145,20 +145,20 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
                     : 'bg-amber-500 text-white hover:bg-amber-600'
                 }`}
             >
-                {isActive ? <><IconPause className="w-5 h-5"/> Pause</> : <><IconPlay className="w-5 h-5"/> Focus</>}
+                {isActive ? <><IconPause className="w-5 h-5"/> 暂停</> : <><IconPlay className="w-5 h-5"/> 专注</>}
             </button>
             <button
                 onClick={resetTimer}
                 className="px-4 py-3 text-slate-400 hover:text-slate-600 font-medium transition-colors"
             >
-                Reset
+                重置
             </button>
         </div>
 
         {/* Duration Customization */}
         <div className={`w-full max-w-xs transition-opacity duration-300 ${isActive ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 text-center">
-             Duration (Minutes): {duration}
+             时长 (分钟): {duration}
            </label>
            
            <div className="flex justify-between gap-2 mb-3">
@@ -172,7 +172,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
                      : 'bg-white text-slate-500 border-slate-200 hover:border-amber-200'
                  }`}
                >
-                 {preset}m
+                 {preset}分
                </button>
              ))}
            </div>
@@ -190,11 +190,11 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
 
         {/* Stats Snippet */}
         <div className="text-xs text-center text-slate-400">
-             Total Focus Today: {Math.floor(sessions.filter(s => {
+             今日专注总时长: {Math.floor(sessions.filter(s => {
                const startOfDay = new Date();
                startOfDay.setHours(0,0,0,0);
                return s.timestamp > startOfDay.getTime();
-             }).reduce((acc, curr) => acc + curr.durationSeconds, 0) / 60)} mins
+             }).reduce((acc, curr) => acc + curr.durationSeconds, 0) / 60)} 分钟
         </div>
       </div>
     </div>

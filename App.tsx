@@ -42,11 +42,11 @@ function App() {
   };
 
   const navItems = [
-    { id: ContextMode.DASHBOARD, label: 'Overview', icon: IconLayoutDashboard },
-    { id: ContextMode.TASKS, label: 'Tasks', icon: IconCheckSquare },
-    { id: ContextMode.FOCUS, label: 'Focus', icon: IconClock },
-    { id: ContextMode.FINANCE, label: 'Finance', icon: IconWallet },
-    { id: ContextMode.JOURNAL, label: 'Journal', icon: IconBookOpen },
+    { id: ContextMode.DASHBOARD, label: '概览', icon: IconLayoutDashboard },
+    { id: ContextMode.TASKS, label: '任务', icon: IconCheckSquare },
+    { id: ContextMode.FOCUS, label: '专注', icon: IconClock },
+    { id: ContextMode.FINANCE, label: '财务', icon: IconWallet },
+    { id: ContextMode.JOURNAL, label: '日记', icon: IconBookOpen },
   ];
 
   return (
@@ -57,7 +57,7 @@ function App() {
           <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">
             Nexus OS
           </h1>
-          <p className="text-xs text-slate-400 font-medium">Context Manager v1.0</p>
+          <p className="text-xs text-slate-400 font-medium">语境管理器 v1.0</p>
         </div>
         
         <nav className="space-y-1 flex-1">
@@ -81,7 +81,7 @@ function App() {
         </nav>
 
         <div className="mt-auto px-4 py-4 border-t border-slate-100 text-xs text-slate-400">
-          <p>Cognitive load: Optimized</p>
+          <p>认知负荷：已优化</p>
         </div>
       </aside>
 

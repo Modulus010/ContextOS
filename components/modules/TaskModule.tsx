@@ -101,6 +101,15 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
     }
   };
 
+  const getPriorityLabel = (p: TaskPriority) => {
+    switch (p) {
+      case TaskPriority.HIGH: return '高';
+      case TaskPriority.MEDIUM: return '中';
+      case TaskPriority.LOW: return '低';
+      default: return '';
+    }
+  };
+
   const sortedTasks = [...tasks].sort((a, b) => {
     if (a.status === b.status) {
        // Primary sort: Priority
@@ -119,9 +128,9 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
       <div className="p-6 border-b border-slate-100 bg-slate-50/50">
         <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
           <IconCheckSquare className="text-indigo-600" />
-          Task Flow
+          任务流
         </h2>
-        <p className="text-sm text-slate-500 mt-1">Capture tasks to offload cognitive burden.</p>
+        <p className="text-sm text-slate-500 mt-1">捕捉任务以减轻认知负担。</p>
       </div>
 
       <div className="p-4 bg-white border-b border-slate-100">
@@ -131,7 +140,7 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
                 type="text"
                 value={newTaskTitle}
                 onChange={(e) => setNewTaskTitle(e.target.value)}
-                placeholder="What needs to be done?"
+                placeholder="需要完成什么？"
                 className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all"
              />
           </div>
@@ -141,9 +150,9 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
             onChange={(e) => setPriority(e.target.value as TaskPriority)}
             className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
-            <option value={TaskPriority.LOW}>Low</option>
-            <option value={TaskPriority.MEDIUM}>Med</option>
-            <option value={TaskPriority.HIGH}>High</option>
+            <option value={TaskPriority.LOW}>低</option>
+            <option value={TaskPriority.MEDIUM}>中</option>
+            <option value={TaskPriority.HIGH}>高</option>
           </select>
 
           <button
@@ -158,7 +167,7 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {sortedTasks.length === 0 ? (
           <div className="text-center py-10 text-slate-400">
-            <p>No tasks yet. Clear mind, empty list.</p>
+            <p>暂无任务。清空大脑，保持心流。</p>
           </div>
         ) : (
           sortedTasks.map(task => (
@@ -189,7 +198,7 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
                        </span>
                        <div className="flex gap-2 mt-1">
                           <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border ${priorityColor(task.priority)}`}>
-                             {task.priority}
+                             {getPriorityLabel(task.priority)}
                           </span>
                        </div>
                    </div>
@@ -201,7 +210,7 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
                             onClick={() => breakDownTask(task)}
                             disabled={loadingTasks.has(task.id)}
                             className={`p-2 rounded-lg text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 transition-colors ${loadingTasks.has(task.id) ? 'animate-pulse text-indigo-400' : ''}`}
-                            title="AI Breakdown: Chunk this task"
+                            title="AI 拆解：将任务碎片化"
                         >
                             <IconZap className="w-4 h-4" />
                         </button>
