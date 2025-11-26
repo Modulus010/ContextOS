@@ -67,8 +67,8 @@ export const JournalModule: React.FC<JournalModuleProps> = ({ entries, setEntrie
                                 type="button"
                                 onClick={() => setMood(m.value)}
                                 className={`w-10 h-10 rounded-full flex items-center justify-center text-xl border-2 transition-all ${mood === m.value
-                                        ? m.color + ' scale-110 shadow-sm'
-                                        : 'border-transparent opacity-50 grayscale hover:grayscale-0'
+                                    ? m.color + ' scale-110 shadow-sm'
+                                    : 'border-transparent opacity-50 grayscale hover:grayscale-0'
                                     }`}
                             >
                                 {m.label}

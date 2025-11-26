@@ -142,8 +142,8 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
                     <button
                         onClick={toggleTimer}
                         className={`px-8 py-3 rounded-full font-semibold shadow-lg transition-transform active:scale-95 flex items-center gap-2 ${isActive
-                                ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                                : 'bg-amber-500 text-white hover:bg-amber-600'
+                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                            : 'bg-amber-500 text-white hover:bg-amber-600'
                             }`}
                     >
                         {isActive ? <><IconPause className="w-5 h-5" /> 暂停</> : <><IconPlay className="w-5 h-5" /> 专注</>}
@@ -168,8 +168,8 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
                                 key={preset}
                                 onClick={() => setDuration(preset)}
                                 className={`flex-1 py-1 rounded text-xs font-medium border transition-colors ${duration === preset
-                                        ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-700'
-                                        : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-amber-200 dark:hover:border-amber-700'
+                                    ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-700'
+                                    : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-amber-200 dark:hover:border-amber-700'
                                     }`}
                             >
                                 {preset}分

@@ -216,8 +216,8 @@ const TaskItem: React.FC<TaskItemProps> = ({
 }) => (
     <div
         className={`rounded-xl border transition-all duration-200 overflow-hidden ${task.status === TaskStatus.DONE
-                ? 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800 opacity-60'
-                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md'
+            ? 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800 opacity-60'
+            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md'
             }`}
     >
         <div className="flex items-center justify-between p-3">
@@ -225,8 +225,8 @@ const TaskItem: React.FC<TaskItemProps> = ({
                 <button
                     onClick={onToggleStatus}
                     className={`w-5 h-5 rounded border flex items-center justify-center transition-colors shrink-0 ${task.status === TaskStatus.DONE
-                            ? 'bg-indigo-600 border-indigo-600 text-white'
-                            : 'border-slate-300 dark:border-slate-600 hover:border-indigo-500'
+                        ? 'bg-indigo-600 border-indigo-600 text-white'
+                        : 'border-slate-300 dark:border-slate-600 hover:border-indigo-500'
                         }`}
                 >
                     {task.status === TaskStatus.DONE && <IconCheckSquare className="w-3 h-3" />}

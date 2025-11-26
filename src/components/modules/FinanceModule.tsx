@@ -68,8 +68,8 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions, setT
                                 type="button"
                                 onClick={() => setType(TransactionType.EXPENSE)}
                                 className={`flex-1 py-1 text-xs font-bold rounded-md transition-colors ${type === TransactionType.EXPENSE
-                                        ? 'bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300'
-                                        : 'bg-white dark:bg-slate-700 text-slate-400'
+                                    ? 'bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300'
+                                    : 'bg-white dark:bg-slate-700 text-slate-400'
                                     }`}
                             >
                                 支出
@@ -78,8 +78,8 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions, setT
                                 type="button"
                                 onClick={() => setType(TransactionType.INCOME)}
                                 className={`flex-1 py-1 text-xs font-bold rounded-md transition-colors ${type === TransactionType.INCOME
-                                        ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300'
-                                        : 'bg-white dark:bg-slate-700 text-slate-400'
+                                    ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300'
+                                    : 'bg-white dark:bg-slate-700 text-slate-400'
                                     }`}
                             >
                                 收入
