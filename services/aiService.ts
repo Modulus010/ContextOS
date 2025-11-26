@@ -3,7 +3,8 @@ import { GlobalState } from "../types";
 
 const client = new OpenAI({
   apiKey: process.env.API_KEY,
-  baseURL: "https://api.deepseek.com"
+  baseURL: "https://api.deepseek.com",
+  dangerouslyAllowBrowser: true
 });
 
 const SYSTEM_INSTRUCTION = `
