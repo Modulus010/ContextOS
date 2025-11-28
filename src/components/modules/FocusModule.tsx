@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FocusSession, Task } from '../../types';
 import { IconClock, IconPlay, IconPause } from '../Icons';
+import { getStartOfDay } from '@/utils';
 
 interface FocusModuleProps {
     sessions: FocusSession[];
@@ -15,7 +16,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
     const [timeLeft, setTimeLeft] = useState(25 * 60);
     const [selectedTaskId, setSelectedTaskId] = useState<string>('');
 
-    const formatTime = (seconds: number) => {
+    const formatDuration = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
@@ -94,9 +95,8 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
 
     const focusMinutesToday = Math.floor(
         sessions.filter(s => {
-            const startOfDay = new Date();
-            startOfDay.setHours(0, 0, 0, 0);
-            return s.timestamp > startOfDay.getTime();
+            const startOfDay = getStartOfDay();
+            return s.timestamp > startOfDay;
         }).reduce((acc, curr) => acc + curr.durationSeconds, 0) / 60
     );
 
@@ -160,7 +160,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
                         </g>
                     </svg>
                     <div className="text-5xl font-mono font-bold text-slate-800 dark:text-slate-100 z-10">
-                        {formatTime(timeLeft)}
+                        {formatDuration(timeLeft)}
                     </div>
                 </div>
 

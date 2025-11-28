@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Task, TaskStatus, TaskPriority, Subtask } from '../../types';
 import { IconPlus, IconCheckSquare, IconTrash, IconZap, IconChevronDown, IconChevronUp } from '../Icons';
 import { generateSubtasks } from '../../services/aiService';
+import { formatTime } from '../../utils';
 
 interface TaskModuleProps {
     tasks: Task[];
@@ -36,9 +37,11 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
     const toggleTaskStatus = (id: string) => {
         setTasks(prev => prev.map(t => {
             if (t.id !== id) return t;
+            const newStatus = t.status === TaskStatus.DONE ? TaskStatus.TODO : TaskStatus.DONE;
             return {
                 ...t,
-                status: t.status === TaskStatus.DONE ? TaskStatus.TODO : TaskStatus.DONE
+                status: newStatus,
+                completedAt: newStatus === TaskStatus.DONE ? Date.now() : undefined
             };
         }));
     };
@@ -236,10 +239,15 @@ const TaskItem: React.FC<TaskItemProps> = ({
                     <span className={`text-sm font-medium ${task.status === TaskStatus.DONE ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200'}`}>
                         {task.title}
                     </span>
-                    <div className="flex gap-2 mt-1">
+                    <div className="flex gap-2 mt-1 items-center">
                         <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border ${priorityColor(task.priority)}`}>
                             {getPriorityLabel(task.priority)}
                         </span>
+                        {task.status === TaskStatus.DONE && task.completedAt && (
+                            <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                                完成于 {formatTime(task.completedAt)}
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>

@@ -1,6 +1,8 @@
 import OpenAI from "openai";
 import { GlobalState } from "../types";
 import { API_CONFIG, AI_SYSTEM_INSTRUCTIONS } from "../constants";
+import { get } from "http";
+import { getStartOfDay } from "@/utils";
 
 const client = new OpenAI({
     apiKey: process.env.API_KEY,
@@ -11,23 +13,23 @@ const client = new OpenAI({
 export const generateContextualInsight = async (state: GlobalState): Promise<string> => {
     try {
         const today = new Date();
-        const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+        const startOfDay = getStartOfDay(today);
 
         // Filter for today's data to give immediate context
         const dailyContext = {
-            tasksCompletedToday: state.tasks.filter(t => t.status === 'done' && t.createdAt >= startOfDay).length,
+            tasksCompletedToday: state.tasks.filter(t => t.status === 'done' && t.completedAt >= startOfDay),
             pendingTasks: state.tasks.filter(t => t.status !== 'done'),
             focusSessionsToday: state.focusSessions.filter(s => s.timestamp >= startOfDay),
             transactionsToday: state.transactions.filter(t => t.timestamp >= startOfDay),
-            latestMood: state.journalEntries.length > 0 ? state.journalEntries[0].mood : 'unknown',
-            lastJournalEntry: state.journalEntries.length > 0 ? state.journalEntries[0].content.substring(0, 100) : 'none'
+            lastJournal: state.journalEntries.length > 0 ? state.journalEntries[0] : null,
         };
 
         const prompt = `
-      当前用户上下文 (今日):
+      当前时间戳: ${today.getTime()}
+      当前用户上下文:
       ${JSON.stringify(dailyContext, null, 2)}
       
-      基于这个快照，提供一个具体的认知洞察或建议（使用中文）。
+      基于这个快照，提供一个具体的认知洞察或建议。
     `;
 
         const response = await client.chat.completions.create({

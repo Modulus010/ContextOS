@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Transaction, TransactionType } from '../../types';
 import { IconWallet, IconTrendingUp, IconPlus } from '../Icons';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { formatTime } from '@/utils';
 
 interface FinanceModuleProps {
     transactions: Transaction[];
@@ -158,7 +159,7 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions, setT
                             <div key={t.id} className="flex justify-between items-center p-3 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-lg text-sm transition-colors">
                                 <div className="flex flex-col">
                                     <span className="font-medium text-slate-700 dark:text-slate-200">{t.description}</span>
-                                    <span className="text-xs text-slate-400">{new Date(t.timestamp).toLocaleTimeString([],{month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'})}</span>
+                                    <span className="text-xs text-slate-400">{formatTime(t.timestamp)}</span>
                                 </div>
                                 <span className={`font-mono font-medium ${t.type === TransactionType.INCOME ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                                     {t.type === TransactionType.INCOME ? '+' : '-'}¥{t.amount}
@@ -182,7 +183,7 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions, setT
                                     type="number"
                                     scale="time"
                                     domain={["dataMin", "dataMax"]}
-                                    tickFormatter={(ts) => new Date(ts).toLocaleDateString([], { month: '2-digit', day: '2-digit' })}
+                                    tickFormatter={formatTime}
                                     tick={{ fill: '#94a3b8' }}
                                 />
                                 <YAxis tick={{ fill: '#94a3b8' }} />

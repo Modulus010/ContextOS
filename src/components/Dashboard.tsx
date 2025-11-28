@@ -31,10 +31,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
     }, [state.tasks.length, state.focusSessions.length, state.transactions.length, state.journalEntries.length]);
 
     const recentActivities = [
-        ...state.tasks.filter(t => t.status === 'done').map(t => ({ type: 'task', data: t, time: t.createdAt })),
+        ...state.tasks.filter(t => t.status === 'done').map(t => ({ type: 'task', data: t, time: t.completedAt })),
         ...state.focusSessions.map(s => ({ type: 'focus', data: s, time: s.timestamp })),
+        ...state.transactions.map(t => ({ type: 'transaction', data: t, time: t.timestamp })),
         ...state.journalEntries.map(j => ({ type: 'journal', data: j, time: j.timestamp }))
-    ].sort((a, b) => b.time - a.time).slice(0, 5);
+    ].sort((a, b) => b.time - a.time).slice(0, 10);
 
     return (
         <div className="h-full flex flex-col gap-6 p-2 md:p-0">
@@ -45,15 +46,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
             </div>
 
             {/* AI Insight Card */}
-            <div className="bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-800 dark:to-violet-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+            <div className="bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-800 dark:to-violet-800 rounded-2xl p-4 md:p-6 text-white shadow-lg relative overflow-hidden min-h-32 md:min-h-40 flex flex-col justify-center flex-shrink-0">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
                     <IconSparkles className="w-32 h-32" />
                 </div>
                 <div className="relative z-10">
-                    <h3 className="font-semibold text-indigo-100 flex items-center gap-2 mb-2">
+                    <h3 className="font-semibold text-indigo-100 flex items-center gap-2 mb-2 text-sm md:text-base">
                         <IconSparkles className="w-4 h-4" /> Nexus 洞察
                     </h3>
-                    <p className={`text-lg md:text-xl font-medium leading-relaxed ${loading ? 'animate-pulse' : ''}`}>
+                    <p className={`text-base md:text-lg font-medium leading-relaxed ${loading ? 'animate-pulse' : ''}`}>
                         "{insight}"
                     </p>
                 </div>
@@ -123,7 +124,7 @@ const StatCard: React.FC<StatCardProps> = ({ icon: Icon, label, value, bgColor, 
 
 interface ActivityItemProps {
     item: {
-        type: 'task' | 'focus' | 'journal';
+        type: 'task' | 'focus' | 'transaction' | 'journal';
         data: any;
         time: number;
     };
@@ -133,6 +134,7 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ item }) => {
     const colorMap = {
         task: 'bg-blue-500',
         focus: 'bg-amber-500',
+        transaction: 'bg-emerald-500',
         journal: 'bg-violet-500',
     };
 
@@ -142,6 +144,8 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ item }) => {
                 return `完成任务：${item.data.title}`;
             case 'focus':
                 return `专注了 ${Math.floor(item.data.durationSeconds / 60)} 分钟`;
+            case 'transaction':
+                return `${item.data.type === 'income' ? '收入' : '支出'}：¥${item.data.amount} (${item.data.description})`;
             case 'journal':
                 return `记录心情：${item.data.mood}`;
             default:

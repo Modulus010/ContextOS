@@ -19,13 +19,28 @@ export const getEndOfDay = (date: Date = new Date()): number => {
 };
 
 /**
- * Format time for display
+ * Format timestamp for display with time, date, and optional year
+ * Shows HH:MM 月DD format, and adds year if different from current year
  */
 export const formatTime = (timestamp: number): string => {
-    return new Date(timestamp).toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit'
-    });
+    const date = new Date(timestamp);
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const dateYear = date.getFullYear();
+
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+
+    const timeStr = `${hours}:${minutes}`;
+    const dateStr = `${month}/${day}`;
+
+    if (dateYear !== currentYear) {
+        return `${dateYear}/${timeStr} ${dateStr}`;
+    }
+
+    return `${dateStr} ${timeStr}`;
 };
 
 /**

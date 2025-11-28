@@ -10,7 +10,7 @@ import { getStartOfDay } from './dateTime';
  */
 export const getCompletedTasksToday = (tasks: Task[], date?: Date): Task[] => {
     const startOfDay = getStartOfDay(date);
-    return tasks.filter(t => t.status === TaskStatus.DONE && t.createdAt >= startOfDay);
+    return tasks.filter(t => t.status === TaskStatus.DONE && t.completedAt >= startOfDay);
 };
 
 /**
