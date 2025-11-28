@@ -10,6 +10,7 @@ interface FocusModuleProps {
 
 export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions, tasks }) => {
     const [isActive, setIsActive] = useState(false);
+    const [hasStarted, setHasStarted] = useState(false);
     const [duration, setDuration] = useState(25);
     const [timeLeft, setTimeLeft] = useState(25 * 60);
     const [selectedTaskId, setSelectedTaskId] = useState<string>('');
@@ -20,26 +21,40 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
+    // Timer countdown effect
     useEffect(() => {
-        let interval: number | undefined;
+        let interval: NodeJS.Timeout | undefined;
 
         if (isActive && timeLeft > 0) {
-            interval = window.setInterval(() => {
-                setTimeLeft((time) => time - 1);
+            interval = setInterval(() => {
+                setTimeLeft((time) => {
+                    if (time <= 1) {
+                        setIsActive(false);
+                        return 0;
+                    }
+                    return time - 1;
+                });
             }, 1000);
-        } else if (timeLeft === 0 && isActive) {
-            setIsActive(false);
-            completeSession();
         }
 
-        return () => clearInterval(interval);
-    }, [isActive, timeLeft]);
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [isActive]);
 
+    // Complete session when timer reaches 0
+    useEffect(() => {
+        if (timeLeft === 0 && !isActive) {
+            completeSession();
+        }
+    }, [timeLeft, isActive]);
+
+    // Reset timeLeft when duration changes (only when not active)
     useEffect(() => {
         if (!isActive) {
             setTimeLeft(duration * 60);
         }
-    }, [duration, isActive]);
+    }, [duration]);
 
     const completeSession = () => {
         const newSession: FocusSession = {
@@ -50,6 +65,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
             taskId: selectedTaskId || undefined
         };
         setSessions(prev => [newSession, ...prev]);
+        setSelectedTaskId(''); // Reset task selection after completion
         if (Notification.permission === 'granted') {
             new Notification("Nexus 专注", { body: "专注时段结束。休息一下吧。" });
         }
@@ -57,6 +73,9 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
 
     const toggleTimer = () => {
         setIsActive(!isActive);
+        if (!isActive) {
+            setHasStarted(true); // Mark that timer has been started
+        }
         if (!isActive && Notification.permission !== 'granted') {
             Notification.requestPermission();
         }
@@ -64,12 +83,14 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
 
     const resetTimer = () => {
         setIsActive(false);
+        setHasStarted(false); // Reset the started flag
         setTimeLeft(duration * 60);
     };
 
     const activeTasks = tasks.filter(t => t.status !== 'done');
     const progress = ((duration * 60 - timeLeft) / (duration * 60)) * 100;
     const PRESETS = [15, 25, 50, 90];
+    const CIRCUMFERENCE = 2 * Math.PI * 100;
 
     const focusMinutesToday = Math.floor(
         sessions.filter(s => {
@@ -99,7 +120,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
                         value={selectedTaskId}
                         onChange={(e) => setSelectedTaskId(e.target.value)}
                         className="w-full p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-amber-500 outline-none transition-colors"
-                        disabled={isActive}
+                        disabled={hasStarted}
                     >
                         <option value="">无特定任务</option>
                         {activeTasks.map(t => (
@@ -110,27 +131,33 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
 
                 {/* Timer UI */}
                 <div className="relative w-56 h-56 flex items-center justify-center">
-                    <svg className="absolute w-full h-full transform -rotate-90">
-                        <circle
-                            cx="112"
-                            cy="112"
-                            r="100"
-                            stroke="currentColor"
-                            strokeWidth="8"
-                            fill="transparent"
-                            className="text-slate-100 dark:text-slate-800 transition-colors"
-                        />
-                        <circle
-                            cx="112"
-                            cy="112"
-                            r="100"
-                            stroke="currentColor"
-                            strokeWidth="8"
-                            fill="transparent"
-                            strokeDasharray={2 * Math.PI * 100}
-                            strokeDashoffset={2 * Math.PI * 100 * (1 - progress / 100)}
-                            className="text-amber-500 transition-all duration-1000 ease-linear"
-                        />
+                    <svg className="absolute w-full h-full" viewBox="0 0 224 224" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img">
+                        <g transform="rotate(-90 112 112)">
+                            <circle
+                                cx="112"
+                                cy="112"
+                                r="100"
+                                stroke="currentColor"
+                                strokeWidth="8"
+                                fill="transparent"
+                                vectorEffect="non-scaling-stroke"
+                                strokeLinecap="round"
+                                className="text-slate-100 dark:text-slate-800 transition-colors"
+                            />
+                            <circle
+                                cx="112"
+                                cy="112"
+                                r="100"
+                                stroke="currentColor"
+                                strokeWidth="8"
+                                fill="transparent"
+                                vectorEffect="non-scaling-stroke"
+                                strokeLinecap="round"
+                                strokeDasharray={CIRCUMFERENCE}
+                                strokeDashoffset={CIRCUMFERENCE * (1 - progress / 100)}
+                                className="text-amber-500 transition-all duration-1000 ease-linear"
+                            />
+                        </g>
                     </svg>
                     <div className="text-5xl font-mono font-bold text-slate-800 dark:text-slate-100 z-10">
                         {formatTime(timeLeft)}
@@ -157,7 +184,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
                 </div>
 
                 {/* Duration Customization */}
-                <div className={`w-full max-w-xs transition-opacity duration-300 ${isActive ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
+                <div className={`w-full max-w-xs transition-opacity duration-300 ${hasStarted ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
                     <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 text-center">
                         时长 (分钟): {duration}
                     </label>
