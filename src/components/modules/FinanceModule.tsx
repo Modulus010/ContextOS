@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Transaction, TransactionType } from '../../types';
 import { IconWallet, IconTrendingUp, IconPlus } from '../Icons';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface FinanceModuleProps {
     transactions: Transaction[];
@@ -31,11 +31,58 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions, setT
         setDescription('');
     };
 
-    const chartData = transactions.slice(0, 7).reverse().map(t => ({
-        name: t.description.substring(0, 10),
-        amount: t.type === TransactionType.EXPENSE ? -t.amount : t.amount,
-        type: t.type
-    }));
+    // Prepare recent transactions (oldest -> newest) for the last 30 days and compute running balance
+    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    const recentTransactions = transactions
+        .filter(t => t.timestamp >= now - THIRTY_DAYS)
+        .sort((a, b) => a.timestamp - b.timestamp);
+
+    const startingBalance = transactions
+        .filter(t => t.timestamp < now - THIRTY_DAYS)
+        .reduce((acc, curr) => (curr.type === TransactionType.INCOME ? acc + curr.amount : acc - curr.amount), 0);
+
+    let cumulative = startingBalance;
+    const chartData = recentTransactions.map(t => {
+        const delta = t.type === TransactionType.INCOME ? t.amount : -t.amount;
+        cumulative += delta;
+        return {
+            timestamp: t.timestamp,
+            name: new Date(t.timestamp).toLocaleDateString([], { month: '2-digit', day: '2-digit' }),
+            balance: parseFloat(cumulative.toFixed(2)),
+            delta: parseFloat(delta.toFixed(2)),
+            type: t.type,
+            description: t.description
+        };
+    });
+
+    // Build line segments between adjacent points; color determined by the later point's delta
+    const segments = chartData.length > 1
+        ? chartData.slice(1).map((curr, i) => {
+            const prev = chartData[i];
+            const color = curr.delta >= 0 ? '#10b981' : '#f43f5e';
+            return { data: [prev, curr], color };
+        })
+        : [];
+
+    // Custom tooltip to show change details
+    const CustomTooltip: React.FC<any> = ({ active, payload, label }) => {
+        if (!active || !payload || !payload.length) return null;
+        // prefer original payload object if present
+        const p = payload[0].payload || payload[0];
+        const dateLabel = label ? new Date(label).toLocaleString() : p?.name;
+        const delta = p?.delta ?? 0;
+        const isIncome = delta >= 0;
+        const deltaColor = isIncome ? '#10b981' : '#f43f5e';
+        return (
+            <div style={{ padding: 12, borderRadius: 8, background: '#0f172a', color: '#e2e8f0', boxShadow: '0 6px 18px rgba(2,6,23,0.6)' }}>
+                <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 6 }}>{dateLabel}</div>
+                <div style={{ fontSize: 14, fontWeight: 600 }}>余额: ¥{Number(p?.balance ?? 0).toFixed(2)}</div>
+                <div style={{ fontSize: 13, color: deltaColor, marginTop: 6 }}>变化: {delta >= 0 ? '+' : '-'}¥{Math.abs(Number(delta)).toFixed(2)}</div>
+                {p?.description && <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 6 }}>记录: {p.description}</div>}
+            </div>
+        );
+    };
 
     const totalBalance = transactions.reduce((acc, curr) => {
         return curr.type === TransactionType.INCOME ? acc + curr.amount : acc - curr.amount;
@@ -54,7 +101,7 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions, setT
                 <div className="text-right">
                     <p className="text-xs text-slate-400 uppercase tracking-wider">余额</p>
                     <p className={`text-2xl font-mono font-bold ${totalBalance >= 0 ? 'text-slate-800 dark:text-slate-100' : 'text-rose-600 dark:text-rose-400'}`}>
-                        ${totalBalance.toFixed(2)}
+                        ¥{totalBalance.toFixed(2)}
                     </p>
                 </div>
             </div>
@@ -111,10 +158,10 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions, setT
                             <div key={t.id} className="flex justify-between items-center p-3 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-lg text-sm transition-colors">
                                 <div className="flex flex-col">
                                     <span className="font-medium text-slate-700 dark:text-slate-200">{t.description}</span>
-                                    <span className="text-xs text-slate-400">{new Date(t.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                    <span className="text-xs text-slate-400">{new Date(t.timestamp).toLocaleTimeString([],{month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'})}</span>
                                 </div>
                                 <span className={`font-mono font-medium ${t.type === TransactionType.INCOME ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                                    {t.type === TransactionType.INCOME ? '+' : '-'}${t.amount}
+                                    {t.type === TransactionType.INCOME ? '+' : '-'}¥{t.amount}
                                 </span>
                             </div>
                         ))}
@@ -124,23 +171,43 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions, setT
                 {/* Right: Visualization */}
                 <div className="bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 p-4 flex flex-col transition-colors">
                     <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-300 mb-4 flex items-center gap-2">
-                        <IconTrendingUp className="w-4 h-4" /> 近期活动
+                        <IconTrendingUp className="w-4 h-4" /> 余额变化
                     </h3>
                     <div className="flex-1 min-h-[150px]">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={chartData}>
-                                <XAxis dataKey="name" hide />
-                                <YAxis hide />
-                                <Tooltip
-                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', backgroundColor: '#1e293b', color: '#f1f5f9' }}
-                                    cursor={{ fill: 'transparent' }}
+                            <LineChart data={chartData} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#e6edf3" />
+                                <XAxis
+                                    dataKey="timestamp"
+                                    type="number"
+                                    scale="time"
+                                    domain={["dataMin", "dataMax"]}
+                                    tickFormatter={(ts) => new Date(ts).toLocaleDateString([], { month: '2-digit', day: '2-digit' })}
+                                    tick={{ fill: '#94a3b8' }}
                                 />
-                                <Bar dataKey="amount" radius={[4, 4, 4, 4]}>
-                                    {chartData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.type === TransactionType.INCOME ? '#10b981' : '#f43f5e'} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
+                                <YAxis tick={{ fill: '#94a3b8' }} />
+                                <Tooltip
+                                    content={<CustomTooltip />}
+                                    cursor={{ stroke: '#0ea5a4', strokeWidth: 1 }}
+                                />
+                                {/* Render each adjacent segment with its color (color determined by the later point) */}
+                                {segments.map((seg, idx) => (
+                                    <Line key={idx} data={seg.data} dataKey="balance" stroke={seg.color} strokeWidth={2} dot={false} isAnimationActive={false} />
+                                ))}
+                                {/* Transparent line to render colored dots by payload */}
+                                <Line
+                                    data={chartData}
+                                    dataKey="balance"
+                                    stroke="transparent"
+                                    dot={(dotProps) => {
+                                        const { cx, cy, payload } = dotProps as any;
+                                        if (cx == null || cy == null) return null;
+                                        const fill = payload.delta >= 0 ? '#10b981' : '#f43f5e';
+                                        return <circle cx={cx} cy={cy} r={4} fill={fill} stroke="#fff" strokeWidth={1} />;
+                                    }}
+                                    activeDot={{ r: 6 }}
+                                />
+                            </LineChart>
                         </ResponsiveContainer>
                     </div>
                     <div className="mt-4 text-xs text-slate-400 text-center">
