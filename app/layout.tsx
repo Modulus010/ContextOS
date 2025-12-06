@@ -5,7 +5,7 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-    title: 'Nexus Context OS',
+    title: 'Nexus',
     description: 'Your personal context operating system',
 }
 
