@@ -1,10 +1,7 @@
-import type { NextConfig } from 'next'
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-    reactStrictMode: true,
-    env: {
-        API_KEY: process.env.API_KEY,
-    },
-}
+    /* config options here */
+};
 
 export default nextConfig;

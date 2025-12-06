@@ -37,7 +37,7 @@ export const formatTime = (timestamp: number): string => {
     const dateStr = `${month}/${day}`;
 
     if (dateYear !== currentYear) {
-        return `${dateYear}/${timeStr} ${dateStr}`;
+        return `${dateYear}/${dateStr} ${timeStr}`;
     }
 
     return `${dateStr} ${timeStr}`;
