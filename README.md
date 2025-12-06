@@ -1,279 +1,162 @@
-# Nexus Context OS - 生活上下文操作系统
+# Nexus Context OS - Next.js Version
 
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+这是一个基于 Next.js 的个人上下文操作系统，用于管理任务、专注、财务和日记。
 
-**一个集成任务管理、深度专注、财务追踪和认知日志的人生管理系统**
+## 项目迁移说明
 
-</div>
+本项目已从 Vite + React 迁移到 Next.js，主要改进包括：
 
-## 📋 项目特性
+1. **API 路由**: 所有 AI API 调用现在通过 Next.js API 路由转发，提高安全性
+2. **服务器端渲染**: 支持 SSR/SSG，提升性能和 SEO
+3. **环境变量管理**: API Key 等敏感信息在服务器端安全存储
+4. **为云存储等后端功能预留扩展空间**
 
-Nexus OS 是一个全栈认知管理平台，帮助你在生活的多个维度保持清晰和专注：
+## 文件结构变化
 
-- 🎯 **任务流** - 捕捉任务以减轻认知负担，支持 AI 拆解复杂任务
-- ⏱️ **深度工作** - 使用番茄钟技术进行单任务处理，减少认知残留
-- 💰 **现金流** - 追踪收支，理解消费与心理的联系
-- 📔 **认知日志** - 外化思维，记录情绪，获得 AI 心理学洞察
-- 🧠 **上下文概览** - 基于数据的 AI 洞察，理解任务、专注、消费和情绪的关联
+### 新增文件
+- `app/` - Next.js App Router 目录
+  - `layout.tsx` - 根布局
+  - `page.tsx` - 主页面（原 App.tsx）
+  - `globals.css` - 全局样式
+  - `api/` - API 路由
+    - `ai/chat/route.ts` - 通用聊天 API
+    - `ai/insight/route.ts` - 上下文洞察 API
+    - `ai/journal/route.ts` - 日记分析 API
+    - `ai/subtasks/route.ts` - 子任务生成 API
+- `next.config.js` - Next.js 配置
+- `tailwind.config.ts` - Tailwind CSS 配置
+- `postcss.config.js` - PostCSS 配置
+- `.eslintrc.json` - ESLint 配置
+- `.env.local.example` - 环境变量示例
 
-## 🏗️ 项目结构
+### 修改文件
+- `package.json` - 更新依赖和脚本
+- `tsconfig.json` - Next.js TypeScript 配置
+- `.gitignore` - Next.js 忽略文件
+- `src/services/aiService.ts` - 使用 API 路由替代直接调用
 
-项目采用清晰的分层架构，便于维护和扩展：
+### 可删除的旧文件
+- `src/index.html` - Next.js 不需要
+- `src/index.tsx` - 替换为 app/page.tsx
+- `src/App.tsx` - 替换为 app/page.tsx
+- `vite.config.ts` - 替换为 next.config.js
 
-```
-src/
-├── components/              # React 组件
-│   ├── common/             # 可复用通用组件
-│   ├── modules/            # 功能模块组件
-│   │   ├── TaskModule.tsx
-│   │   ├── FocusModule.tsx
-│   │   ├── FinanceModule.tsx
-│   │   └── JournalModule.tsx
-│   ├── Dashboard.tsx        # 仪表板
-│   ├── Icons.tsx            # 图标组件库
-│   └── App.tsx              # 应用主组件
-├── hooks/                   # 自定义 React Hooks
-│   ├── useLocalStorage.ts   # localStorage 管理
-│   ├── useGlobalState.ts    # 全局状态管理
-│   ├── useDailyStats.ts     # 日统计数据
-│   └── index.ts             # Hooks 导出
-├── services/                # 业务逻辑和 API
-│   └── aiService.ts         # AI 服务（DeepSeek）
-├── utils/                   # 工具函数
-│   ├── dateTime.ts          # 日期时间工具
-│   ├── dataFilters.ts       # 数据过滤和计算
-│   └── index.ts             # 工具导出
-├── constants/               # 常量配置
-│   ├── storage.ts           # localStorage 键常量
-│   ├── api.ts               # API 配置
-│   ├── ui.ts                # UI 常量
-│   └── index.ts             # 常量导出
-├── types/                   # TypeScript 类型定义
-│   └── index.ts             # 全局类型
-├── context/                 # React Context（状态管理）
-│   ├── GlobalContext.tsx    # 全局状态 Context
-│   └── index.ts             # Context 导出
-├── index.tsx                # 应用入口
-└── index.html               # HTML 模板
-```
+## 安装和运行
 
-## 🚀 快速开始
+### 1. 安装依赖
 
-### 前置条件
-- Node.js 18+
-- npm 或 yarn
-
-### 安装依赖
-
-```bash
+```powershell
 npm install
 ```
 
-### 配置环境变量
+### 2. 配置环境变量
 
-1. 创建 `.env.local` 文件在项目根目录
-2. 添加你的 API 密钥：
+复制 `.env.local.example` 为 `.env.local` 并填入你的 API Key：
 
-```env
-API_KEY=your_deepseek_api_key_here
+```powershell
+Copy-Item .env.local.example .env.local
 ```
 
-获取 API 密钥：[DeepSeek API](https://platform.deepseek.com/)
+然后编辑 `.env.local`:
 
-### 开发模式
+```env
+API_KEY=your_actual_api_key_here
+API_BASE_URL=https://api.deepseek.com/v1
+```
 
-```bash
+### 3. 运行开发服务器
+
+```powershell
 npm run dev
 ```
 
-应用将在 `http://localhost:3000` 启动
+打开浏览器访问 [http://localhost:3000](http://localhost:3000)
 
-### 构建生产版本
+### 4. 构建生产版本
 
-```bash
+```powershell
 npm run build
+npm start
 ```
 
-输出文件在 `dist/` 目录
+## API 路由说明
 
-### 预览生产构建
+### 1. `/api/ai/chat` - 通用聊天接口
+用于通用 AI 对话功能。
 
-```bash
-npm run preview
+**请求**:
+```json
+{
+  "messages": [
+    { "role": "user", "content": "你好" }
+  ],
+  "model": "deepseek-chat",
+  "max_tokens": 500
+}
 ```
 
-## 📦 核心模块
+### 2. `/api/ai/insight` - 上下文洞察
+基于用户的任务、专注、财务和日记数据生成洞察。
 
-### 任务流 (TaskModule)
-- 创建、编辑、删除任务
-- 设置优先级（高、中、低）
-- AI 智能拆解复杂任务为子任务
-- 按状态和优先级自动排序
+**请求**:
+```json
+{
+  "state": {
+    "tasks": [...],
+    "focusSessions": [...],
+    "transactions": [...],
+    "journalEntries": [...]
+  }
+}
+```
 
-### 深度工作 (FocusModule)
-- 自定义专注时长（5-120 分钟）
-- 预设快速选择（15、25、50、90 分钟）
-- 实时进度显示
-- 完成提醒通知
-- 关联任务追踪
+### 3. `/api/ai/journal` - 日记分析
+分析日记条目并提供心理学反馈。
 
-### 现金流 (FinanceModule)
-- 记录收入和支出
-- 实时余额计算
-- 近期交易可视化图表
-- 交易历史详细记录
+**请求**:
+```json
+{
+  "entry": "今天完成了很多工作",
+  "mood": "高兴"
+}
+```
 
-### 认知日志 (JournalModule)
-- 记录日记和心情（5 级情绪）
-- 获得 AI 心理学反思
-- 情绪趋势追踪
-- 私密性反思空间
+### 4. `/api/ai/subtasks` - 子任务生成
+将大任务拆解为小任务。
 
-### 上下文概览 (Dashboard)
-- 今日统计（完成任务、专注时间、支出）
-- AI 生成的个性化洞察
-- 实时活动流展示
-- 多维度数据聚合
+**请求**:
+```json
+{
+  "taskTitle": "准备项目演示"
+}
+```
 
-## 🔧 技术栈
+## 后续可扩展功能
 
-- **前端框架**: React 19
-- **构建工具**: Vite 6
+有了 Next.js API 路由，你可以轻松添加：
+
+1. **云存储 API**: 在 `app/api/storage/` 中添加路由
+2. **用户认证**: 集成 NextAuth.js
+3. **数据同步**: 实现跨设备数据同步
+4. **Webhook**: 接收外部服务通知
+5. **定时任务**: 使用 Next.js API 路由实现 cron jobs
+
+## 技术栈
+
+- **框架**: Next.js 14 (App Router)
+- **UI**: React 18 + Tailwind CSS
 - **语言**: TypeScript
-- **样式**: Tailwind CSS
-- **数据可视化**: Recharts
-- **AI 服务**: DeepSeek API
-- **本地存储**: localStorage
+- **图表**: Recharts
+- **AI**: OpenAI SDK + DeepSeek API
+- **部署**: Vercel / 自托管
 
-## 🎯 架构设计理念
+## 开发注意事项
 
-### 1. 清晰的分层结构
-- **Components** - 展示逻辑
-- **Hooks** - 状态和业务逻辑
-- **Services** - 外部 API 调用
-- **Utils** - 纯工具函数
-- **Constants** - 配置和常量
+1. 所有客户端组件需要添加 `'use client'` 指令
+2. API 路由自动处理服务器端逻辑，无需担心浏览器安全问题
+3. 环境变量只在服务器端可用，不会暴露给客户端
+4. 使用 `src/` 目录别名 `@/` 导入模块
 
-### 2. 关注点分离
-- 类型定义集中在 `types/`
-- 常量管理在 `constants/`
-- 通用工具在 `utils/`
-- 业务逻辑在 `hooks/` 和 `services/`
+## License
 
-### 3. 状态管理
-- 使用自定义 `useLocalStorage` hook 持久化
-- `useGlobalState` 统一管理全局状态
-- `useDailyStats` 计算日统计数据
-- Context API 避免 prop drilling
-
-### 4. 代码复用
-- Dashboard 中提取 `StatCard` 和 `ActivityItem` 组件
-- TaskModule 中提取 `TaskItem` 组件
-- 通用工具函数在 `utils/` 中集中管理
-
-## 📝 数据模型
-
-### Task（任务）
-```typescript
-{
-  id: string;
-  title: string;
-  status: 'todo' | 'in_progress' | 'done';
-  priority: 'high' | 'medium' | 'low';
-  createdAt: number;
-  tags: string[];
-  subtasks?: Subtask[];
-}
-```
-
-### FocusSession（专注会话）
-```typescript
-{
-  id: string;
-  durationSeconds: number;
-  taskId?: string;
-  timestamp: number;
-  completed: boolean;
-}
-```
-
-### Transaction（交易）
-```typescript
-{
-  id: string;
-  amount: number;
-  description: string;
-  type: 'income' | 'expense';
-  category: string;
-  timestamp: number;
-}
-```
-
-### JournalEntry（日记条目）
-```typescript
-{
-  id: string;
-  content: string;
-  mood: 'great' | 'good' | 'neutral' | 'bad' | 'terrible';
-  timestamp: number;
-  aiReflection?: string;
-}
-```
-
-## 🔌 API 集成
-
-项目使用 **DeepSeek API** 提供 AI 功能：
-
-### 端点
-
-1. **生成上下文洞察** (`generateContextualInsight`)
-   - 分析用户今日数据
-   - 生成个性化心理学建议
-
-2. **分析日记** (`analyzeJournalEntry`)
-   - 提供心理学反思
-   - 加深自我认识
-
-3. **智能拆解任务** (`generateSubtasks`)
-   - 将复杂任务分解为子任务
-   - 降低认知负荷
-
-## 🌙 深色模式
-
-应用原生支持系统深色模式，使用 Tailwind CSS 的 `dark:` 前缀。
-
-## 📱 响应式设计
-
-- 桌面：侧边栏导航 + 主内容区
-- 移动：底部标签栏导航
-- 平板：自适应布局
-
-## 🔐 隐私和本地存储
-
-- 所有数据默认存储在浏览器 localStorage
-- 未来支持远程同步（可选）
-- API 调用仅用于 AI 分析，不存储用户数据
-
-## 🚧 路线图
-
-- [ ] 用户认证系统
-- [ ] 云端数据同步
-- [ ] 导出报告功能
-- [ ] 移动应用 (React Native)
-- [ ] 实时协作
-- [ ] 高级分析和预测
-
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request！
-
-## 📧 联系
-
-如有问题或建议，请通过以下方式联系：
-- 创建 Issue
-- 提交讨论
-
----
-
-**Nexus OS** - 让生活变得可量化、可优化、可反思 ✨
+Private

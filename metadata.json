@@ -1,5 +1,0 @@
-{
-  "name": "Nexus: Life Context OS",
-  "description": "基于认知心理学的个人管理系统，集成待办事项、番茄钟、记账和日记功能，利用 Gemini AI 提供洞察，旨在降低上下文切换成本。",
-  "requestFramePermissions": []
-}
