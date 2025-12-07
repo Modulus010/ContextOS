@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GlobalState } from '../types';
 import { generateContextualInsight } from '../services/aiService';
 import { useDailyStats } from '../hooks';
-import { IconSparkles, IconLayoutDashboard, IconCheckSquare, IconClock, IconWallet } from './Icons';
+import { Sparkles, LayoutDashboard, CheckSquare, Clock, Wallet } from 'lucide-react';
 import { formatTime } from '../utils';
+import { ModeToggle } from './mode-toggle';
 
 interface DashboardProps {
     state: GlobalState;
@@ -40,44 +42,47 @@ export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
     return (
         <div className="h-full flex flex-col gap-6 p-2 md:p-0">
             {/* Header */}
-            <div className="flex items-center gap-2 mb-2">
-                <IconLayoutDashboard className="text-slate-400" />
-                <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">上下文概览</h1>
+            <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                    <LayoutDashboard className="text-muted-foreground" />
+                    <h1 className="text-2xl font-bold">上下文概览</h1>
+                </div>
+                <ModeToggle />
             </div>
 
             {/* AI Insight Card */}
-            <div className="bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-800 dark:to-violet-800 rounded-2xl p-4 md:p-6 text-white shadow-lg relative overflow-hidden min-h-32 md:min-h-40 flex flex-col justify-center flex-shrink-0">
+            <Card className="bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-800 dark:to-violet-800 border-none text-white shadow-lg relative overflow-hidden min-h-32 md:min-h-40 flex flex-col justify-center flex-shrink-0">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
-                    <IconSparkles className="w-32 h-32" />
+                    <Sparkles className="w-32 h-32" />
                 </div>
-                <div className="relative z-10">
+                <CardContent className="relative z-10 p-4 md:p-6">
                     <h3 className="font-semibold text-indigo-100 flex items-center gap-2 mb-2 text-sm md:text-base">
-                        <IconSparkles className="w-4 h-4" /> Nexus 洞察
+                        <Sparkles className="w-4 h-4" /> Nexus 洞察
                     </h3>
                     <p className={`text-base md:text-lg font-medium leading-relaxed ${loading ? 'animate-pulse' : ''}`}>
                         "{insight}"
                     </p>
-                </div>
-            </div>
+                </CardContent>
+            </Card>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <StatCard
-                    icon={IconCheckSquare}
+                    icon={CheckSquare}
                     label="已完成任务"
                     value={stats.completedToday}
                     bgColor="bg-blue-50 dark:bg-blue-900/30"
                     textColor="text-blue-500 dark:text-blue-400"
                 />
                 <StatCard
-                    icon={IconClock}
+                    icon={Clock}
                     label="专注时间"
                     value={`${stats.focusMinutes}分钟`}
                     bgColor="bg-amber-50 dark:bg-amber-900/30"
                     textColor="text-amber-500 dark:text-amber-400"
                 />
                 <StatCard
-                    icon={IconWallet}
+                    icon={Wallet}
                     label="今日支出"
                     value={`$${stats.spentToday}`}
                     bgColor="bg-emerald-50 dark:bg-emerald-900/30"
@@ -86,18 +91,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
             </div>
 
             {/* Recent Activity Mini-Feed */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 flex-1 transition-colors">
-                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">活动流</h3>
-                <div className="space-y-4">
-                    {recentActivities.length > 0 ? (
-                        recentActivities.map((item: any, idx) => (
-                            <ActivityItem key={idx} item={item} />
-                        ))
-                    ) : (
-                        <p className="text-slate-400 italic text-sm">暂无活动记录。</p>
-                    )}
-                </div>
-            </div>
+            <Card className="flex-1">
+                <CardHeader>
+                    <CardTitle>活动流</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        {recentActivities.length > 0 ? (
+                            recentActivities.map((item: any, idx) => (
+                                <ActivityItem key={idx} item={item} />
+                            ))
+                        ) : (
+                            <p className="text-muted-foreground italic text-sm">暂无活动记录。</p>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     );
 };
@@ -111,15 +120,15 @@ interface StatCardProps {
 }
 
 const StatCard: React.FC<StatCardProps> = ({ icon: Icon, label, value, bgColor, textColor }) => (
-    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center justify-between transition-colors">
+    <Card className="flex items-center justify-between p-6 transition-colors">
         <div>
-            <p className="text-sm text-slate-400 font-medium uppercase tracking-wider">{label}</p>
-            <p className="text-3xl font-bold text-slate-800 dark:text-slate-100 mt-1">{value}</p>
+            <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">{label}</p>
+            <p className="text-3xl font-bold mt-1">{value}</p>
         </div>
         <div className={`w-12 h-12 rounded-full ${bgColor} flex items-center justify-center ${textColor}`}>
             <Icon className="w-6 h-6" />
         </div>
-    </div>
+    </Card>
 );
 
 interface ActivityItemProps {

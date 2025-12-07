@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { Task, TaskStatus, TaskPriority, Subtask } from '../../types';
-import { IconPlus, IconCheckSquare, IconTrash, IconZap, IconChevronDown, IconChevronUp } from '../Icons';
+import { Plus, CheckSquare, Trash, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import { generateSubtasks } from '../../services/aiService';
 import { formatTime } from '../../utils';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 
 interface TaskModuleProps {
     tasks: Task[];
@@ -125,49 +131,50 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
     });
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 h-full flex flex-col overflow-hidden transition-colors">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
-                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                    <IconCheckSquare className="text-indigo-600 dark:text-indigo-400" />
+        <Card className="h-full flex flex-col overflow-hidden">
+            <CardHeader className="border-b bg-muted/50">
+                <CardTitle className="flex items-center gap-2">
+                    <CheckSquare className="text-primary" />
                     任务流
-                </h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">捕捉任务以减轻认知负担。</p>
-            </div>
+                </CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">捕捉任务以减轻认知负担。</p>
+            </CardHeader>
 
-            <div className="p-4 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+            <div className="p-4 border-b">
                 <form onSubmit={addTask} className="flex gap-2 items-center">
                     <div className="relative flex-1">
-                        <input
+                        <Input
                             type="text"
                             value={newTaskTitle}
                             onChange={(e) => setNewTaskTitle(e.target.value)}
                             placeholder="需要完成什么？"
-                            className="w-full pl-4 pr-12 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all text-slate-900 dark:text-white placeholder-slate-400"
+                            className="w-full"
                         />
                     </div>
 
-                    <select
+                    <Select
                         value={priority}
-                        onChange={(e) => setPriority(e.target.value as TaskPriority)}
-                        className="p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        onValueChange={(value) => setPriority(value as TaskPriority)}
                     >
-                        <option value={TaskPriority.LOW}>低</option>
-                        <option value={TaskPriority.MEDIUM}>中</option>
-                        <option value={TaskPriority.HIGH}>高</option>
-                    </select>
+                        <SelectTrigger className="w-[80px]">
+                            <SelectValue placeholder="优先级" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={TaskPriority.LOW}>低</SelectItem>
+                            <SelectItem value={TaskPriority.MEDIUM}>中</SelectItem>
+                            <SelectItem value={TaskPriority.HIGH}>高</SelectItem>
+                        </SelectContent>
+                    </Select>
 
-                    <button
-                        type="submit"
-                        className="p-3 bg-indigo-600 dark:bg-indigo-500 text-white rounded-xl hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors shadow-sm"
-                    >
-                        <IconPlus className="w-6 h-6" />
-                    </button>
+                    <Button type="submit" size="icon">
+                        <Plus className="w-4 h-4" />
+                    </Button>
                 </form>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <CardContent className="flex-1 overflow-y-auto p-4 space-y-3">
                 {sortedTasks.length === 0 ? (
-                    <div className="text-center py-10 text-slate-400">
+                    <div className="text-center py-10 text-muted-foreground">
                         <p>暂无任务。清空大脑，保持心流。</p>
                     </div>
                 ) : (
@@ -187,8 +194,8 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
                         />
                     ))
                 )}
-            </div>
-        </div>
+            </CardContent>
+        </Card>
     );
 };
 
@@ -217,34 +224,29 @@ const TaskItem: React.FC<TaskItemProps> = ({
     priorityColor,
     getPriorityLabel
 }) => (
-    <div
-        className={`rounded-xl border transition-all duration-200 overflow-hidden ${task.status === TaskStatus.DONE
-            ? 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800 opacity-60'
-            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md'
+    <Card
+        className={`transition-all duration-200 overflow-hidden ${task.status === TaskStatus.DONE
+            ? 'bg-muted/50 opacity-60'
+            : 'hover:shadow-md'
             }`}
     >
         <div className="flex items-center justify-between p-3">
             <div className="flex items-center gap-3 flex-1">
-                <button
-                    onClick={onToggleStatus}
-                    className={`w-5 h-5 rounded border flex items-center justify-center transition-colors shrink-0 ${task.status === TaskStatus.DONE
-                        ? 'bg-indigo-600 border-indigo-600 text-white'
-                        : 'border-slate-300 dark:border-slate-600 hover:border-indigo-500'
-                        }`}
-                >
-                    {task.status === TaskStatus.DONE && <IconCheckSquare className="w-3 h-3" />}
-                </button>
+                <Checkbox
+                    checked={task.status === TaskStatus.DONE}
+                    onCheckedChange={() => onToggleStatus()}
+                />
 
                 <div className="flex flex-col flex-1">
-                    <span className={`text-sm font-medium ${task.status === TaskStatus.DONE ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200'}`}>
+                    <span className={`text-sm font-medium ${task.status === TaskStatus.DONE ? 'line-through text-muted-foreground' : ''}`}>
                         {task.title}
                     </span>
                     <div className="flex gap-2 mt-1 items-center">
-                        <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border ${priorityColor(task.priority)}`}>
+                        <Badge variant="outline" className={priorityColor(task.priority)}>
                             {getPriorityLabel(task.priority)}
-                        </span>
+                        </Badge>
                         {task.status === TaskStatus.DONE && task.completedAt && (
-                            <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                            <span className="text-[10px] text-muted-foreground">
                                 完成于 {formatTime(task.completedAt)}
                             </span>
                         )}
@@ -254,52 +256,54 @@ const TaskItem: React.FC<TaskItemProps> = ({
 
             <div className="flex items-center gap-1">
                 {task.status !== TaskStatus.DONE && (
-                    <button
+                    <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={onBreakDown}
                         disabled={loading}
-                        className={`p-2 rounded-lg text-slate-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${loading ? 'animate-pulse text-indigo-400' : ''}`}
+                        className={loading ? 'animate-pulse text-primary' : ''}
                         title="AI 拆解：将任务碎片化"
                     >
-                        <IconZap className="w-4 h-4" />
-                    </button>
+                        <Zap className="w-4 h-4" />
+                    </Button>
                 )}
 
                 {task.subtasks && task.subtasks.length > 0 && (
-                    <button
+                    <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={onToggleExpand}
-                        className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     >
-                        {expanded ? <IconChevronUp className="w-4 h-4" /> : <IconChevronDown className="w-4 h-4" />}
-                    </button>
+                        {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </Button>
                 )}
 
-                <button
+                <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={onDelete}
-                    className="p-2 text-slate-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 transition-colors"
+                    className="hover:text-destructive"
                 >
-                    <IconTrash className="w-4 h-4" />
-                </button>
+                    <Trash className="w-4 h-4" />
+                </Button>
             </div>
         </div>
 
         {/* Subtasks */}
         {expanded && task.subtasks && task.subtasks.length > 0 && (
-            <div className="bg-slate-50/50 dark:bg-slate-950/30 border-t border-slate-100 dark:border-slate-800 p-3 pl-10 space-y-2">
+            <div className="bg-muted/30 border-t p-3 pl-10 space-y-2">
                 {task.subtasks.map(st => (
                     <div key={st.id} className="flex items-center gap-2">
-                        <button
-                            onClick={() => onToggleSubtask(st.id)}
-                            className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${st.completed ? 'bg-indigo-400 border-indigo-400' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'
-                                }`}
-                        >
-                            {st.completed && <IconCheckSquare className="w-2.5 h-2.5 text-white" />}
-                        </button>
-                        <span className={`text-xs ${st.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-300'}`}>
+                        <Checkbox
+                            checked={st.completed}
+                            onCheckedChange={() => onToggleSubtask(st.id)}
+                        />
+                        <span className={`text-xs ${st.completed ? 'line-through text-muted-foreground' : ''}`}>
                             {st.title}
                         </span>
                     </div>
                 ))}
             </div>
         )}
-    </div>
+    </Card>
 );

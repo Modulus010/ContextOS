@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FocusSession, Task } from '../../types';
-import { IconClock, IconPlay, IconPause } from '../Icons';
+import { Clock, Play, Pause } from 'lucide-react';
 import { getStartOfDay } from '@/utils';
 
 interface FocusModuleProps {
@@ -104,7 +104,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 h-full flex flex-col transition-colors">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
                 <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                    <IconClock className="text-amber-500" />
+                    <Clock className="text-amber-500" />
                     深度工作
                 </h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">单任务处理以减少认知残留。</p>
@@ -173,7 +173,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
                             : 'bg-amber-500 text-white hover:bg-amber-600'
                             }`}
                     >
-                        {isActive ? <><IconPause className="w-5 h-5" /> 暂停</> : <><IconPlay className="w-5 h-5" /> 专注</>}
+                        {isActive ? <><Pause className="w-5 h-5" /> 暂停</> : <><Play className="w-5 h-5" /> 专注</>}
                     </button>
                     <button
                         onClick={resetTimer}

@@ -8,7 +8,7 @@ import { FocusModule } from '@/components/modules/FocusModule';
 import { FinanceModule } from '@/components/modules/FinanceModule';
 import { JournalModule } from '@/components/modules/JournalModule';
 import { Dashboard } from '@/components/Dashboard';
-import { IconLayoutDashboard, IconCheckSquare, IconClock, IconWallet, IconBookOpen } from '@/components/Icons';
+import { LayoutDashboard, CheckSquare, Clock, Wallet, BookOpen } from 'lucide-react';
 
 interface NavItem {
     id: ContextMode;
@@ -21,11 +21,11 @@ export default function HomePage() {
     const { state, setTasks, setSessions, setTransactions, setJournalEntries } = useGlobalState();
 
     const navItems: NavItem[] = [
-        { id: ContextMode.DASHBOARD, label: '概览', icon: IconLayoutDashboard },
-        { id: ContextMode.TASKS, label: '任务', icon: IconCheckSquare },
-        { id: ContextMode.FOCUS, label: '专注', icon: IconClock },
-        { id: ContextMode.FINANCE, label: '财务', icon: IconWallet },
-        { id: ContextMode.JOURNAL, label: '日记', icon: IconBookOpen },
+        { id: ContextMode.DASHBOARD, label: '概览', icon: LayoutDashboard },
+        { id: ContextMode.TASKS, label: '任务', icon: CheckSquare },
+        { id: ContextMode.FOCUS, label: '专注', icon: Clock },
+        { id: ContextMode.FINANCE, label: '财务', icon: Wallet },
+        { id: ContextMode.JOURNAL, label: '日记', icon: BookOpen },
     ];
 
     const renderContent = () => {
