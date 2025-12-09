@@ -3,12 +3,13 @@ import { Task, TaskStatus, TaskPriority, Subtask } from '../../types';
 import { Plus, CheckSquare, Trash, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import { generateSubtasks } from '../../services/aiService';
 import { formatTime } from '../../utils';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface TaskModuleProps {
     tasks: Task[];
@@ -18,8 +19,6 @@ interface TaskModuleProps {
 export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const [priority, setPriority] = useState<TaskPriority>(TaskPriority.MEDIUM);
-    const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
-    const [loadingTasks, setLoadingTasks] = useState<Set<string>>(new Set());
 
     const addTask = (e: React.FormEvent) => {
         e.preventDefault();
@@ -56,28 +55,11 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
         setTasks(prev => prev.filter(t => t.id !== id));
     };
 
-    const breakDownTask = async (task: Task) => {
-        if (loadingTasks.has(task.id)) return;
-
-        setLoadingTasks(prev => new Set(prev).add(task.id));
-        const steps = await generateSubtasks(task.title);
-
+    const addSubtasks = (taskId: string, newSubtasks: Subtask[]) => {
         setTasks(prev => prev.map(t => {
-            if (t.id !== task.id) return t;
-            const newSubtasks: Subtask[] = steps.map(step => ({
-                id: crypto.randomUUID(),
-                title: step,
-                completed: false
-            }));
+            if (t.id !== taskId) return t;
             return { ...t, subtasks: [...(t.subtasks || []), ...newSubtasks] };
         }));
-
-        setExpandedTasks(prev => new Set(prev).add(task.id));
-        setLoadingTasks(prev => {
-            const next = new Set(prev);
-            next.delete(task.id);
-            return next;
-        });
     };
 
     const toggleSubtask = (taskId: string, subtaskId: string) => {
@@ -90,15 +72,6 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
                 )
             };
         }));
-    };
-
-    const toggleExpand = (id: string) => {
-        setExpandedTasks(prev => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id);
-            else next.add(id);
-            return next;
-        });
     };
 
     const priorityColor = (p: TaskPriority) => {
@@ -132,12 +105,14 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
 
     return (
         <Card className="h-full flex flex-col overflow-hidden">
-            <CardHeader className="border-b bg-muted/50">
+            <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <CheckSquare className="text-primary" />
                     任务流
                 </CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">捕捉任务以减轻认知负担。</p>
+                <CardDescription>
+                    捕捉任务以减轻认知负担
+                </CardDescription>
             </CardHeader>
 
             <div className="p-4 border-b">
@@ -182,12 +157,9 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
                         <TaskItem
                             key={task.id}
                             task={task}
-                            expanded={expandedTasks.has(task.id)}
-                            loading={loadingTasks.has(task.id)}
                             onToggleStatus={() => toggleTaskStatus(task.id)}
                             onDelete={() => deleteTask(task.id)}
-                            onBreakDown={() => breakDownTask(task)}
-                            onToggleExpand={() => toggleExpand(task.id)}
+                            onAddSubtasks={addSubtasks}
                             onToggleSubtask={(subtaskId) => toggleSubtask(task.id, subtaskId)}
                             priorityColor={priorityColor}
                             getPriorityLabel={getPriorityLabel}
@@ -201,12 +173,9 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
 
 interface TaskItemProps {
     task: Task;
-    expanded: boolean;
-    loading: boolean;
     onToggleStatus: () => void;
     onDelete: () => void;
-    onBreakDown: () => void;
-    onToggleExpand: () => void;
+    onAddSubtasks: (taskId: string, newSubtasks: Subtask[]) => void;
     onToggleSubtask: (subtaskId: string) => void;
     priorityColor: (p: TaskPriority) => string;
     getPriorityLabel: (p: TaskPriority) => string;
@@ -214,96 +183,121 @@ interface TaskItemProps {
 
 const TaskItem: React.FC<TaskItemProps> = ({
     task,
-    expanded,
-    loading,
     onToggleStatus,
     onDelete,
-    onBreakDown,
-    onToggleExpand,
+    onAddSubtasks,
     onToggleSubtask,
     priorityColor,
     getPriorityLabel
-}) => (
-    <Card
-        className={`transition-all duration-200 overflow-hidden ${task.status === TaskStatus.DONE
-            ? 'bg-muted/50 opacity-60'
-            : 'hover:shadow-md'
-            }`}
-    >
-        <div className="flex items-center justify-between p-3">
-            <div className="flex items-center gap-3 flex-1">
-                <Checkbox
-                    checked={task.status === TaskStatus.DONE}
-                    onCheckedChange={() => onToggleStatus()}
-                />
+}) => {
+    const [expanded, setExpanded] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-                <div className="flex flex-col flex-1">
-                    <span className={`text-sm font-medium ${task.status === TaskStatus.DONE ? 'line-through text-muted-foreground' : ''}`}>
-                        {task.title}
-                    </span>
-                    <div className="flex gap-2 mt-1 items-center">
-                        <Badge variant="outline" className={priorityColor(task.priority)}>
-                            {getPriorityLabel(task.priority)}
-                        </Badge>
-                        {task.status === TaskStatus.DONE && task.completedAt && (
-                            <span className="text-[10px] text-muted-foreground">
-                                完成于 {formatTime(task.completedAt)}
+    const handleBreakDown = async () => {
+        if (loading) return;
+
+        setLoading(true);
+        try {
+            const steps = await generateSubtasks(task.title);
+            const newSubtasks: Subtask[] = steps.map(step => ({
+                id: crypto.randomUUID(),
+                title: step,
+                completed: false
+            }));
+            onAddSubtasks(task.id, newSubtasks);
+            setExpanded(true);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <Card
+            className={`transition-all duration-200 overflow-hidden ${task.status === TaskStatus.DONE
+                ? 'bg-muted/50 opacity-60'
+                : 'hover:shadow-md'
+                }`}
+        >
+            <Collapsible open={expanded} onOpenChange={setExpanded}>
+                <div className="flex items-center justify-between p-3">
+                    <div className="flex items-center gap-3 flex-1">
+                        <Checkbox
+                            checked={task.status === TaskStatus.DONE}
+                            onCheckedChange={() => onToggleStatus()}
+                        />
+
+                        <div className="flex flex-col flex-1">
+                            <span className={`text-sm font-medium ${task.status === TaskStatus.DONE ? 'line-through text-muted-foreground' : ''}`}>
+                                {task.title}
                             </span>
+                            <div className="flex gap-2 mt-1 items-center">
+                                <Badge variant="outline" className={priorityColor(task.priority)}>
+                                    {getPriorityLabel(task.priority)}
+                                </Badge>
+                                {task.status === TaskStatus.DONE && task.completedAt && (
+                                    <span className="text-[10px] text-muted-foreground">
+                                        完成于 {formatTime(task.completedAt)}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                        {task.status !== TaskStatus.DONE && (
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={handleBreakDown}
+                                disabled={loading}
+                                className={loading ? 'animate-pulse text-primary' : ''}
+                                title="AI 拆解：将任务碎片化"
+                            >
+                                <Zap className="w-4 h-4" />
+                            </Button>
                         )}
+
+                        {task.subtasks && task.subtasks.length > 0 && (
+                            <CollapsibleTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                >
+                                    {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                </Button>
+                            </CollapsibleTrigger>
+                        )}
+
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={onDelete}
+                            className="hover:text-destructive"
+                        >
+                            <Trash className="w-4 h-4" />
+                        </Button>
                     </div>
                 </div>
-            </div>
 
-            <div className="flex items-center gap-1">
-                {task.status !== TaskStatus.DONE && (
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={onBreakDown}
-                        disabled={loading}
-                        className={loading ? 'animate-pulse text-primary' : ''}
-                        title="AI 拆解：将任务碎片化"
-                    >
-                        <Zap className="w-4 h-4" />
-                    </Button>
-                )}
-
+                {/* Subtasks */}
                 {task.subtasks && task.subtasks.length > 0 && (
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={onToggleExpand}
-                    >
-                        {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </Button>
+                    <CollapsibleContent>
+                        <div className="bg-muted/30 border-t p-3 pl-10 space-y-2">
+                            {task.subtasks.map(st => (
+                                <div key={st.id} className="flex items-center gap-2">
+                                    <Checkbox
+                                        checked={st.completed}
+                                        onCheckedChange={() => onToggleSubtask(st.id)}
+                                    />
+                                    <span className={`text-xs ${st.completed ? 'line-through text-muted-foreground' : ''}`}>
+                                        {st.title}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </CollapsibleContent>
                 )}
-
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={onDelete}
-                    className="hover:text-destructive"
-                >
-                    <Trash className="w-4 h-4" />
-                </Button>
-            </div>
-        </div>
-
-        {/* Subtasks */}
-        {expanded && task.subtasks && task.subtasks.length > 0 && (
-            <div className="bg-muted/30 border-t p-3 pl-10 space-y-2">
-                {task.subtasks.map(st => (
-                    <div key={st.id} className="flex items-center gap-2">
-                        <Checkbox
-                            checked={st.completed}
-                            onCheckedChange={() => onToggleSubtask(st.id)}
-                        />
-                        <span className={`text-xs ${st.completed ? 'line-through text-muted-foreground' : ''}`}>
-                            {st.title}
-                        </span>
-                    </div>
-                ))}
-            </div>
-        )}
-    </Card>
-);
+            </Collapsible>
+        </Card>
+    );
+};

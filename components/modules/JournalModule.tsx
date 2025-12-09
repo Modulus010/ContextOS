@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { JournalEntry } from '../../types';
+import { JournalEntry } from '@/types';
 import { BookOpen, Send, Sparkles } from 'lucide-react';
-import { analyzeJournalEntry } from '../../services/aiService';
+import { analyzeJournalEntry } from '@/services/aiService';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -52,13 +52,13 @@ export const JournalModule: React.FC<JournalModuleProps> = ({ entries, setEntrie
     };
 
     return (
-        <Card className="h-full flex flex-col overflow-hidden">
-            <CardHeader className="border-b bg-muted/50">
-                <CardTitle className="flex items-center gap-2">
+        <Card>
+            <CardHeader>
+                <CardTitle>
                     <BookOpen className="text-violet-600 dark:text-violet-400" />
                     认知日志
                 </CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">外化思维以处理情绪。</p>
+                <p className="text-sm text-muted-foreground mt-1">外化思维以处理情绪</p>
             </CardHeader>
 
             <CardContent className="flex-1 flex flex-col md:flex-row h-full overflow-hidden p-0">

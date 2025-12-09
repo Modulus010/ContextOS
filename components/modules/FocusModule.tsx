@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { FocusSession, Task } from '../../types';
+import { FocusSession, Task } from '@/types';
 import { Clock, Play, Pause } from 'lucide-react';
 import { getStartOfDay } from '@/utils';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Slider } from '@/components/ui/slider';
+import { Button } from '@/components/ui/button';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 interface FocusModuleProps {
     sessions: FocusSession[];
@@ -101,14 +105,14 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
     );
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 h-full flex flex-col transition-colors">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
-                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                    <Clock className="text-amber-500" />
+        <Card className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 h-full flex flex-col transition-colors">
+            <CardHeader>
+                <CardTitle>
+                    <Clock />
                     深度工作
-                </h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">单任务处理以减少认知残留。</p>
-            </div>
+                </CardTitle>
+                <CardDescription>单任务处理以减少认知残留</CardDescription>
+            </CardHeader>
 
             <div className="flex-1 flex flex-col items-center p-6 space-y-6 overflow-y-auto">
                 {/* Task Selection */}
@@ -116,17 +120,23 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
                     <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
                         意图
                     </label>
-                    <select
+                    <Select
                         value={selectedTaskId}
-                        onChange={(e) => setSelectedTaskId(e.target.value)}
-                        className="w-full p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-amber-500 outline-none transition-colors"
+                        onValueChange={(val) => setSelectedTaskId(val)}
                         disabled={hasStarted}
                     >
-                        <option value="">无特定任务</option>
-                        {activeTasks.map(t => (
-                            <option key={t.id} value={t.id}>{t.title}</option>
-                        ))}
-                    </select>
+                        <SelectTrigger className="w-full p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-amber-500 outline-none transition-colors">
+                            <SelectValue placeholder="无特定任务" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value='None'>无特定任务</SelectItem>
+                            {activeTasks.map(t => (
+                                <SelectItem key={t.id} value={t.id}>
+                                    {t.title}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
 
                 {/* Timer UI */}
@@ -166,7 +176,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
 
                 {/* Controls */}
                 <div className="flex gap-4">
-                    <button
+                    <Button
                         onClick={toggleTimer}
                         className={`px-8 py-3 rounded-full font-semibold shadow-lg transition-transform active:scale-95 flex items-center gap-2 ${isActive
                             ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -174,45 +184,47 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
                             }`}
                     >
                         {isActive ? <><Pause className="w-5 h-5" /> 暂停</> : <><Play className="w-5 h-5" /> 专注</>}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         onClick={resetTimer}
                         className="px-4 py-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 font-medium transition-colors"
                     >
                         重置
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Duration Customization */}
                 <div className={`w-full max-w-xs transition-opacity duration-300 ${hasStarted ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
                     <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 text-center">
-                        时长 (分钟): {duration}
+                        时长 : {duration} 分钟
                     </label>
 
                     <div className="flex justify-between gap-2 mb-3">
                         {PRESETS.map(preset => (
-                            <button
+                            <Button
                                 key={preset}
                                 onClick={() => setDuration(preset)}
+                                disabled={hasStarted}
                                 className={`flex-1 py-1 rounded text-xs font-medium border transition-colors ${duration === preset
                                     ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-700'
                                     : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-amber-200 dark:hover:border-amber-700'
                                     }`}
                             >
                                 {preset}分
-                            </button>
+                            </Button>
                         ))}
                     </div>
 
-                    <input
-                        type="range"
-                        min="5"
-                        max="120"
-                        step="5"
-                        value={duration}
-                        onChange={(e) => setDuration(Number(e.target.value))}
-                        className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                    />
+                    <Slider
+                        value={[duration]}
+                        onValueChange={(val) => setDuration(Number(val[0]))}
+                        min={5}
+                        max={120}
+                        step={5}
+                        aria-label="专注时长（分钟）"
+                        disabled={hasStarted}
+                    >
+                    </Slider>
                 </div>
 
                 {/* Stats Snippet */}
@@ -220,6 +232,6 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
                     今日专注总时长: {focusMinutesToday} 分钟
                 </div>
             </div>
-        </div>
+        </Card>
     );
 };

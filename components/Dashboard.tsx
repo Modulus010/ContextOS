@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GlobalState } from '../types';
-import { generateContextualInsight } from '../services/aiService';
-import { useDailyStats } from '../hooks';
+import { GlobalState } from '@/types';
+import { generateContextualInsight } from '@/services/aiService';
+import { useDailyStats } from '@/hooks';
 import { Sparkles, LayoutDashboard, CheckSquare, Clock, Wallet } from 'lucide-react';
-import { formatTime } from '../utils';
-import { ModeToggle } from './mode-toggle';
+import { formatTime } from '@/utils';
 
 interface DashboardProps {
     state: GlobalState;
@@ -29,7 +28,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
         };
 
         fetchInsight();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state.tasks.length, state.focusSessions.length, state.transactions.length, state.journalEntries.length]);
 
     const recentActivities = [
@@ -47,7 +45,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
                     <LayoutDashboard className="text-muted-foreground" />
                     <h1 className="text-2xl font-bold">上下文概览</h1>
                 </div>
-                <ModeToggle />
             </div>
 
             {/* AI Insight Card */}

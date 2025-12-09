@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Transaction, TransactionType } from '../../types';
+import { Transaction, TransactionType } from '@/types';
 import { Wallet, TrendingUp, Plus } from 'lucide-react';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatTime } from '@/utils';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -95,13 +95,13 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions, setT
 
     return (
         <Card className="h-full flex flex-col overflow-hidden">
-            <CardHeader className="border-b bg-muted/50 flex flex-row justify-between items-center space-y-0 pb-6">
+            <CardHeader>
                 <div>
                     <CardTitle className="flex items-center gap-2">
                         <Wallet className="text-emerald-600 dark:text-emerald-500" />
                         现金流
                     </CardTitle>
-                    <p className="text-sm text-muted-foreground mt-1">追踪价值交换。</p>
+                    <CardDescription>追踪价值交换</CardDescription>
                 </div>
                 <div className="text-right">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider">余额</p>
