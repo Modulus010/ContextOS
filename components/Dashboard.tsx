@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GlobalState } from '@/types';
 import { generateContextualInsight } from '@/services/aiService';
 import { useDailyStats } from '@/hooks';
-import { Sparkles, LayoutDashboard, CheckSquare, Clock, Wallet } from 'lucide-react';
+import { HugeiconsIcon } from "@hugeicons/react";
+import { SparklesIcon, DashboardSquare01Icon, Task01Icon, Clock01Icon, Wallet01Icon } from "@hugeicons/core-free-icons";
 import { formatTime } from '@/utils';
 
 interface DashboardProps {
@@ -42,7 +43,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
             {/* Header */}
             <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                    <LayoutDashboard className="text-muted-foreground" />
+                    <HugeiconsIcon icon={DashboardSquare01Icon} className="text-muted-foreground" />
                     <h1 className="text-2xl font-bold">上下文概览</h1>
                 </div>
             </div>
@@ -50,11 +51,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
             {/* AI Insight Card */}
             <Card className="bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-800 dark:to-violet-800 border-none text-white shadow-lg relative overflow-hidden min-h-32 md:min-h-40 flex flex-col justify-center flex-shrink-0">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
-                    <Sparkles className="w-32 h-32" />
+                    <HugeiconsIcon icon={SparklesIcon} className="w-32 h-32" />
                 </div>
                 <CardContent className="relative z-10 p-4 md:p-6">
                     <h3 className="font-semibold text-indigo-100 flex items-center gap-2 mb-2 text-sm md:text-base">
-                        <Sparkles className="w-4 h-4" /> Nexus 洞察
+                        <HugeiconsIcon icon={SparklesIcon} className="w-4 h-4" /> Nexus 洞察
                     </h3>
                     <p className={`text-base md:text-lg font-medium leading-relaxed ${loading ? 'animate-pulse' : ''}`}>
                         "{insight}"
@@ -65,21 +66,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <StatCard
-                    icon={CheckSquare}
+                    icon={Task01Icon}
                     label="已完成任务"
                     value={stats.completedToday}
                     bgColor="bg-blue-50 dark:bg-blue-900/30"
                     textColor="text-blue-500 dark:text-blue-400"
                 />
                 <StatCard
-                    icon={Clock}
+                    icon={Clock01Icon}
                     label="专注时间"
                     value={`${stats.focusMinutes}分钟`}
                     bgColor="bg-amber-50 dark:bg-amber-900/30"
                     textColor="text-amber-500 dark:text-amber-400"
                 />
                 <StatCard
-                    icon={Wallet}
+                    icon={Wallet01Icon}
                     label="今日支出"
                     value={`$${stats.spentToday}`}
                     bgColor="bg-emerald-50 dark:bg-emerald-900/30"
@@ -109,21 +110,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
 };
 
 interface StatCardProps {
-    icon: React.FC<React.SVGProps<SVGSVGElement>>;
+    icon: any;
     label: string;
     value: string | number;
     bgColor: string;
     textColor: string;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ icon: Icon, label, value, bgColor, textColor }) => (
+const StatCard: React.FC<StatCardProps> = ({ icon, label, value, bgColor, textColor }) => (
     <Card className="flex items-center justify-between p-6 transition-colors">
         <div>
             <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">{label}</p>
             <p className="text-3xl font-bold mt-1">{value}</p>
         </div>
         <div className={`w-12 h-12 rounded-full ${bgColor} flex items-center justify-center ${textColor}`}>
-            <Icon className="w-6 h-6" />
+            <HugeiconsIcon icon={icon} className="w-6 h-6" />
         </div>
     </Card>
 );

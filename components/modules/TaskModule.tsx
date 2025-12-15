@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Task, TaskStatus, TaskPriority, Subtask } from '../../types';
-import { Plus, CheckSquare, Trash, Zap, ChevronDown, ChevronUp } from 'lucide-react';
+import { HugeiconsIcon } from "@hugeicons/react";
+import { PlusSignIcon, Task01Icon, Delete02Icon, FlashIcon, ArrowDown01Icon, ArrowUp01Icon } from "@hugeicons/core-free-icons";
 import { generateSubtasks } from '../../services/aiService';
 import { formatTime } from '../../utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -107,7 +108,7 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
         <Card className="h-full flex flex-col overflow-hidden">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                    <CheckSquare className="text-primary" />
+                    <HugeiconsIcon icon={Task01Icon} className="text-primary" />
                     任务流
                 </CardTitle>
                 <CardDescription>
@@ -142,7 +143,7 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
                     </Select>
 
                     <Button type="submit" size="icon">
-                        <Plus className="w-4 h-4" />
+                        <HugeiconsIcon icon={PlusSignIcon} className="w-4 h-4" />
                     </Button>
                 </form>
             </div>
@@ -253,7 +254,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
                                 className={loading ? 'animate-pulse text-primary' : ''}
                                 title="AI 拆解：将任务碎片化"
                             >
-                                <Zap className="w-4 h-4" />
+                                <HugeiconsIcon icon={FlashIcon} className="w-4 h-4" />
                             </Button>
                         )}
 
@@ -263,7 +264,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
                                     variant="ghost"
                                     size="icon"
                                 >
-                                    {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                    {expanded ? <HugeiconsIcon icon={ArrowUp01Icon} className="w-4 h-4" /> : <HugeiconsIcon icon={ArrowDown01Icon} className="w-4 h-4" />}
                                 </Button>
                             </CollapsibleTrigger>
                         )}
@@ -274,7 +275,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
                             onClick={onDelete}
                             className="hover:text-destructive"
                         >
-                            <Trash className="w-4 h-4" />
+                            <HugeiconsIcon icon={Delete02Icon} className="w-4 h-4" />
                         </Button>
                     </div>
                 </div>

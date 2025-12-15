@@ -1,5 +1,6 @@
 "use client"
-import { LayoutDashboard, CheckSquare, Clock, Wallet, BookOpen } from "lucide-react"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { DashboardSquare01Icon, Task01Icon, Clock01Icon, Wallet01Icon, BookOpen01Icon } from "@hugeicons/core-free-icons"
 import {
     Sidebar,
     SidebarContent,
@@ -19,27 +20,27 @@ const items = [
     {
         title: "概览",
         url: "/",
-        icon: LayoutDashboard,
+        icon: DashboardSquare01Icon,
     },
     {
         title: "任务",
         url: "/tasks",
-        icon: CheckSquare,
+        icon: Task01Icon,
     },
     {
         title: "专注",
         url: "/focus",
-        icon: Clock,
+        icon: Clock01Icon,
     },
     {
         title: "财务",
         url: "/finance",
-        icon: Wallet,
+        icon: Wallet01Icon,
     },
     {
         title: "日记",
         url: "/journal",
-        icon: BookOpen,
+        icon: BookOpen01Icon,
     },
 ]
 
@@ -66,7 +67,7 @@ export function AppSidebar() {
                                         isActive={pathname === item.url}
                                     >
                                         <Link href={item.url}>
-                                            <item.icon />
+                                            <HugeiconsIcon icon={item.icon} />
                                             <span>{item.title}</span>
                                         </Link>
                                     </SidebarMenuButton>

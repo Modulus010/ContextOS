@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { JournalEntry } from '@/types';
-import { BookOpen, Send, Sparkles } from 'lucide-react';
+import { HugeiconsIcon } from "@hugeicons/react";
+import { BookOpen01Icon, SentIcon, SparklesIcon } from "@hugeicons/core-free-icons";
 import { analyzeJournalEntry } from '@/services/aiService';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -55,7 +56,7 @@ export const JournalModule: React.FC<JournalModuleProps> = ({ entries, setEntrie
         <Card>
             <CardHeader>
                 <CardTitle>
-                    <BookOpen className="text-violet-600 dark:text-violet-400" />
+                    <HugeiconsIcon icon={BookOpen01Icon} className="text-violet-600 dark:text-violet-400" />
                     认知日志
                 </CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">外化思维以处理情绪</p>
@@ -92,7 +93,7 @@ export const JournalModule: React.FC<JournalModuleProps> = ({ entries, setEntrie
                             disabled={!content.trim() || isAnalyzing}
                             className="bg-violet-600 hover:bg-violet-700 text-white"
                         >
-                            {isAnalyzing ? '分析中...' : <>记录日志 <Send className="w-4 h-4 ml-2" /></>}
+                            {isAnalyzing ? '分析中...' : <>记录日志 <HugeiconsIcon icon={SentIcon} className="w-4 h-4 ml-2" /></>}
                         </Button>
                     </div>
                 </div>
@@ -111,7 +112,7 @@ export const JournalModule: React.FC<JournalModuleProps> = ({ entries, setEntrie
                             <p className="text-sm mb-3 whitespace-pre-wrap">{entry.content}</p>
                             {entry.aiReflection && (
                                 <div className="bg-violet-50 dark:bg-violet-900/20 p-3 rounded-lg flex gap-3 items-start">
-                                    <Sparkles className="w-4 h-4 text-violet-500 dark:text-violet-400 mt-0.5 shrink-0" />
+                                    <HugeiconsIcon icon={SparklesIcon} className="w-4 h-4 text-violet-500 dark:text-violet-400 mt-0.5 shrink-0" />
                                     <p className="text-xs text-violet-800 dark:text-violet-200 italic">{entry.aiReflection}</p>
                                 </div>
                             )}

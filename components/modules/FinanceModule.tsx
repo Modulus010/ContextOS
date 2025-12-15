@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Transaction, TransactionType } from '@/types';
-import { Wallet, TrendingUp, Plus } from 'lucide-react';
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Wallet01Icon, TrendingUpIcon, PlusSignIcon } from "@hugeicons/core-free-icons";
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatTime } from '@/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -98,7 +99,7 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions, setT
             <CardHeader>
                 <div>
                     <CardTitle className="flex items-center gap-2">
-                        <Wallet className="text-emerald-600 dark:text-emerald-500" />
+                        <HugeiconsIcon icon={Wallet01Icon} className="text-emerald-600 dark:text-emerald-500" />
                         现金流
                     </CardTitle>
                     <CardDescription>追踪价值交换</CardDescription>
@@ -143,7 +144,7 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions, setT
                                         onChange={e => setAmount(e.target.value)}
                                     />
                                     <Button type="submit" size="icon">
-                                        <Plus className="w-5 h-5" />
+                                        <HugeiconsIcon icon={PlusSignIcon} className="w-5 h-5" />
                                     </Button>
                                 </div>
                             </form>
@@ -169,7 +170,7 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions, setT
                 <Card className="bg-muted/30 flex flex-col">
                     <CardContent className="p-4 flex flex-col h-full">
                         <h3 className="text-sm font-semibold text-muted-foreground mb-4 flex items-center gap-2">
-                            <TrendingUp className="w-4 h-4" /> 余额变化
+                            <HugeiconsIcon icon={TrendingUpIcon} className="w-4 h-4" /> 余额变化
                         </h3>
                         <div className="flex-1 min-h-[150px]">
                             <ResponsiveContainer width="100%" height="100%">

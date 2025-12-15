@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FocusSession, Task } from '@/types';
-import { Clock, Play, Pause } from 'lucide-react';
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Clock01Icon, PlayIcon, PauseIcon } from "@hugeicons/core-free-icons";
 import { getStartOfDay } from '@/utils';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
@@ -108,7 +109,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
         <Card className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 h-full flex flex-col transition-colors">
             <CardHeader>
                 <CardTitle>
-                    <Clock />
+                    <HugeiconsIcon icon={Clock01Icon} />
                     深度工作
                 </CardTitle>
                 <CardDescription>单任务处理以减少认知残留</CardDescription>
@@ -183,7 +184,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
                             : 'bg-amber-500 text-white hover:bg-amber-600'
                             }`}
                     >
-                        {isActive ? <><Pause className="w-5 h-5" /> 暂停</> : <><Play className="w-5 h-5" /> 专注</>}
+                        {isActive ? <><HugeiconsIcon icon={PauseIcon} className="w-5 h-5" /> 暂停</> : <><HugeiconsIcon icon={PlayIcon} className="w-5 h-5" /> 专注</>}
                     </Button>
                     <Button
                         onClick={resetTimer}
