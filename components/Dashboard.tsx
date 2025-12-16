@@ -6,6 +6,7 @@ import { useDailyStats } from '@/hooks';
 import { useTasks, useFocusSessions, useTransactions, useJournalEntries } from '@/hooks/useSupabaseData';
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SparklesIcon, DashboardSquare01Icon, Task01Icon, Clock01Icon, Wallet01Icon } from "@hugeicons/core-free-icons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatTime } from '@/utils';
 
 export const Dashboard: React.FC = () => {
@@ -54,8 +55,17 @@ export const Dashboard: React.FC = () => {
 
     if (isDataLoading) {
         return (
-            <div className="h-full flex items-center justify-center">
-                <p className="text-muted-foreground">加载中...</p>
+            <div className="h-full flex flex-col gap-6 p-2 md:p-0">
+                <div className="flex items-center justify-between mb-2">
+                    <Skeleton className="h-8 w-48" />
+                </div>
+                <Skeleton className="h-32 md:h-40 w-full rounded-xl" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Skeleton className="h-32 rounded-xl" />
+                    <Skeleton className="h-32 rounded-xl" />
+                    <Skeleton className="h-32 rounded-xl" />
+                </div>
+                <Skeleton className="h-64 w-full rounded-xl" />
             </div>
         );
     }
@@ -183,13 +193,14 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ item }) => {
     };
 
     return (
-        <div className="flex gap-4 items-start pb-4 border-b border-slate-50 dark:border-slate-800 last:border-0">
-            <div className="mt-1">
-                <div className={`w-2 h-2 rounded-full ${colorMap[item.type]}`}></div>
+        <div className="flex gap-4 items-start pb-4 border-b border-border last:border-0 last:pb-0 group">
+            <div className="mt-1 relative">
+                <div className={`w-2.5 h-2.5 rounded-full ${colorMap[item.type]} ring-4 ring-white dark:ring-slate-950`}></div>
+                <div className="absolute top-2.5 left-1.5 w-px h-full bg-border -z-10 group-last:hidden"></div>
             </div>
-            <div>
-                <p className="text-sm text-slate-800 dark:text-slate-200">{getText()}</p>
-                <p className="text-xs text-slate-400">{formatTime(item.time)}</p>
+            <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">{getText()}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{formatTime(item.time)}</p>
             </div>
         </div>
     );

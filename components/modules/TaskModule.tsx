@@ -150,8 +150,14 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks }) => {
 
             <CardContent className="flex-1 overflow-y-auto p-4 space-y-3">
                 {sortedTasks.length === 0 ? (
-                    <div className="text-center py-10 text-muted-foreground">
-                        <p>暂无任务。清空大脑，保持心流。</p>
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-full mb-4">
+                            <HugeiconsIcon icon={Task01Icon} className="w-8 h-8 text-slate-400" />
+                        </div>
+                        <h3 className="text-lg font-medium text-foreground">暂无任务</h3>
+                        <p className="text-muted-foreground max-w-sm mt-2">
+                            看起来你现在很清闲！添加一个新任务来开始高效的一天吧。
+                        </p>
                     </div>
                 ) : (
                     sortedTasks.map(task => (

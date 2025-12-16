@@ -10,13 +10,10 @@ import { Task, FocusSession, Transaction, JournalEntry } from '@/types';
 export const tasksService = {
     async getAll(): Promise<Task[]> {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
 
         const { data, error } = await supabase
             .from('tasks')
             .select('*')
-            .eq('user_id', user.id)
             .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -35,13 +32,10 @@ export const tasksService = {
 
     async create(task: Omit<Task, 'id' | 'createdAt'>): Promise<Task> {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
 
         const { data, error } = await supabase
             .from('tasks')
             .insert({
-                user_id: user.id,
                 title: task.title,
                 status: task.status,
                 priority: task.priority,
@@ -68,8 +62,6 @@ export const tasksService = {
 
     async update(id: string, updates: Partial<Task>): Promise<Task> {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
 
         const dbUpdates: any = {};
         if (updates.title !== undefined) dbUpdates.title = updates.title;
@@ -83,7 +75,6 @@ export const tasksService = {
             .from('tasks')
             .update(dbUpdates)
             .eq('id', id)
-            .eq('user_id', user.id)
             .select()
             .single();
 
@@ -103,14 +94,11 @@ export const tasksService = {
 
     async delete(id: string): Promise<void> {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
 
         const { error } = await supabase
             .from('tasks')
             .delete()
-            .eq('id', id)
-            .eq('user_id', user.id);
+            .eq('id', id);
 
         if (error) throw error;
     },
@@ -120,13 +108,10 @@ export const tasksService = {
 export const focusSessionsService = {
     async getAll(): Promise<FocusSession[]> {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
 
         const { data, error } = await supabase
             .from('focus_sessions')
             .select('*')
-            .eq('user_id', user.id)
             .order('started_at', { ascending: false });
 
         if (error) throw error;
@@ -142,13 +127,10 @@ export const focusSessionsService = {
 
     async create(session: Omit<FocusSession, 'id' | 'startedAt'>): Promise<FocusSession> {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
 
         const { data, error } = await supabase
             .from('focus_sessions')
             .insert({
-                user_id: user.id,
                 duration_seconds: session.durationSeconds,
                 task_id: session.taskId,
                 completed: session.completed,
@@ -169,8 +151,6 @@ export const focusSessionsService = {
 
     async update(id: string, updates: Partial<FocusSession>): Promise<FocusSession> {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
 
         const dbUpdates: any = {};
         if (updates.durationSeconds !== undefined) dbUpdates.duration_seconds = updates.durationSeconds;
@@ -180,7 +160,6 @@ export const focusSessionsService = {
             .from('focus_sessions')
             .update(dbUpdates)
             .eq('id', id)
-            .eq('user_id', user.id)
             .select()
             .single();
 
@@ -197,14 +176,11 @@ export const focusSessionsService = {
 
     async delete(id: string): Promise<void> {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
 
         const { error } = await supabase
             .from('focus_sessions')
             .delete()
-            .eq('id', id)
-            .eq('user_id', user.id);
+            .eq('id', id);
 
         if (error) throw error;
     },
@@ -214,13 +190,10 @@ export const focusSessionsService = {
 export const transactionsService = {
     async getAll(): Promise<Transaction[]> {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
 
         const { data, error } = await supabase
             .from('transactions')
             .select('*')
-            .eq('user_id', user.id)
             .order('timestamp', { ascending: false });
 
         if (error) throw error;
@@ -237,13 +210,10 @@ export const transactionsService = {
 
     async create(transaction: Omit<Transaction, 'id' | 'timestamp'>): Promise<Transaction> {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
 
         const { data, error } = await supabase
             .from('transactions')
             .insert({
-                user_id: user.id,
                 amount: transaction.amount,
                 description: transaction.description,
                 type: transaction.type,
@@ -266,8 +236,6 @@ export const transactionsService = {
 
     async update(id: string, updates: Partial<Transaction>): Promise<Transaction> {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
 
         const dbUpdates: any = {};
         if (updates.amount !== undefined) dbUpdates.amount = updates.amount;
@@ -279,7 +247,6 @@ export const transactionsService = {
             .from('transactions')
             .update(dbUpdates)
             .eq('id', id)
-            .eq('user_id', user.id)
             .select()
             .single();
 
@@ -297,14 +264,11 @@ export const transactionsService = {
 
     async delete(id: string): Promise<void> {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
 
         const { error } = await supabase
             .from('transactions')
             .delete()
-            .eq('id', id)
-            .eq('user_id', user.id);
+            .eq('id', id);
 
         if (error) throw error;
     },
@@ -314,13 +278,10 @@ export const transactionsService = {
 export const journalEntriesService = {
     async getAll(): Promise<JournalEntry[]> {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
 
         const { data, error } = await supabase
             .from('journal_entries')
             .select('*')
-            .eq('user_id', user.id)
             .order('timestamp', { ascending: false });
 
         if (error) throw error;
@@ -336,13 +297,10 @@ export const journalEntriesService = {
 
     async create(entry: Omit<JournalEntry, 'id' | 'timestamp'>): Promise<JournalEntry> {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
 
         const { data, error } = await supabase
             .from('journal_entries')
             .insert({
-                user_id: user.id,
                 content: entry.content,
                 mood: entry.mood,
                 ai_reflection: entry.aiReflection,
@@ -363,8 +321,6 @@ export const journalEntriesService = {
 
     async update(id: string, updates: Partial<JournalEntry>): Promise<JournalEntry> {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
 
         const dbUpdates: any = {};
         if (updates.content !== undefined) dbUpdates.content = updates.content;
@@ -375,7 +331,6 @@ export const journalEntriesService = {
             .from('journal_entries')
             .update(dbUpdates)
             .eq('id', id)
-            .eq('user_id', user.id)
             .select()
             .single();
 
@@ -392,14 +347,11 @@ export const journalEntriesService = {
 
     async delete(id: string): Promise<void> {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
 
         const { error } = await supabase
             .from('journal_entries')
             .delete()
-            .eq('id', id)
-            .eq('user_id', user.id);
+            .eq('id', id);
 
         if (error) throw error;
     },
