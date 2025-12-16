@@ -1,51 +1,50 @@
 import React, { useState } from 'react';
 import { Transaction, TransactionType } from '@/types';
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Wallet01Icon, TrendingUpIcon, PlusSignIcon } from "@hugeicons/core-free-icons";
+import { Wallet01Icon, PlusSignIcon } from "@hugeicons/core-free-icons";
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { formatTime } from '@/utils';
+import { formatTime } from '@/utils/dateTime';
+import { useCreateTransaction } from '@/hooks/useSupabaseData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface FinanceModuleProps {
     transactions: Transaction[];
-    setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
 }
 
-export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions, setTransactions }) => {
+export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions }) => {
     const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('');
     const [type, setType] = useState<TransactionType>(TransactionType.EXPENSE);
 
-    const addTransaction = (e: React.FormEvent) => {
+    const createTransaction = useCreateTransaction();
+
+    const addTransaction = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!amount || !description) return;
 
-        const newTransaction: Transaction = {
-            id: crypto.randomUUID(),
+        await createTransaction.mutateAsync({
             amount: parseFloat(amount),
             description,
             type,
-            category: 'General',
-            timestamp: Date.now()
-        };
+            category: 'General'
+        });
 
-        setTransactions(prev => [newTransaction, ...prev]);
         setAmount('');
         setDescription('');
     };
 
     // Prepare recent transactions (oldest -> newest) for the last 30 days and compute running balance
     const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
-    const now = Date.now();
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - THIRTY_DAYS);
     const recentTransactions = transactions
-        .filter(t => t.timestamp >= now - THIRTY_DAYS)
-        .sort((a, b) => a.timestamp - b.timestamp);
+        .filter(t => new Date(t.timestamp) >= thirtyDaysAgo)
+        .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
     const startingBalance = transactions
-        .filter(t => t.timestamp < now - THIRTY_DAYS)
+        .filter(t => new Date(t.timestamp) < thirtyDaysAgo)
         .reduce((acc, curr) => (curr.type === TransactionType.INCOME ? acc + curr.amount : acc - curr.amount), 0);
 
     let cumulative = startingBalance;
@@ -119,14 +118,24 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions, setT
                         <CardContent className="p-4">
                             <form onSubmit={addTransaction}>
                                 <div className="flex gap-2 mb-2">
-                                    <ToggleGroup type="single" value={type} onValueChange={(val) => val && setType(val as TransactionType)} className="w-full">
-                                        <ToggleGroupItem value={TransactionType.EXPENSE} className="flex-1 data-[state=on]:bg-rose-100 data-[state=on]:text-rose-700 dark:data-[state=on]:bg-rose-900/50 dark:data-[state=on]:text-rose-300">
+                                    <div className="flex w-full gap-2">
+                                        <Button
+                                            type="button"
+                                            onClick={() => setType(TransactionType.EXPENSE)}
+                                            variant={type === TransactionType.EXPENSE ? "default" : "outline"}
+                                            className={`flex-1 ${type === TransactionType.EXPENSE ? 'bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-900/50 dark:text-rose-300' : ''}`}
+                                        >
                                             支出
-                                        </ToggleGroupItem>
-                                        <ToggleGroupItem value={TransactionType.INCOME} className="flex-1 data-[state=on]:bg-emerald-100 data-[state=on]:text-emerald-700 dark:data-[state=on]:bg-emerald-900/50 dark:data-[state=on]:text-emerald-300">
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            onClick={() => setType(TransactionType.INCOME)}
+                                            variant={type === TransactionType.INCOME ? "default" : "outline"}
+                                            className={`flex-1 ${type === TransactionType.INCOME ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-300' : ''}`}
+                                        >
                                             收入
-                                        </ToggleGroupItem>
-                                    </ToggleGroup>
+                                        </Button>
+                                    </div>
                                 </div>
                                 <div className="flex gap-2">
                                     <Input
@@ -170,7 +179,7 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions, setT
                 <Card className="bg-muted/30 flex flex-col">
                     <CardContent className="p-4 flex flex-col h-full">
                         <h3 className="text-sm font-semibold text-muted-foreground mb-4 flex items-center gap-2">
-                            <HugeiconsIcon icon={TrendingUpIcon} className="w-4 h-4" /> 余额变化
+                            <HugeiconsIcon icon={Wallet01Icon} className="w-4 h-4" /> 余额变化
                         </h3>
                         <div className="flex-1 min-h-[150px]">
                             <ResponsiveContainer width="100%" height="100%">

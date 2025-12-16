@@ -3,22 +3,36 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GlobalState } from '@/types';
 import { generateContextualInsight } from '@/services/aiService';
 import { useDailyStats } from '@/hooks';
+import { useTasks, useFocusSessions, useTransactions, useJournalEntries } from '@/hooks/useSupabaseData';
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SparklesIcon, DashboardSquare01Icon, Task01Icon, Clock01Icon, Wallet01Icon } from "@hugeicons/core-free-icons";
 import { formatTime } from '@/utils';
 
-interface DashboardProps {
-    state: GlobalState;
-}
-
-export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
+export const Dashboard: React.FC = () => {
     const [insight, setInsight] = useState<string>("正在分析您的上下文模式...");
     const [loading, setLoading] = useState(false);
+
+    const { data: tasks = [], isLoading: tasksLoading } = useTasks();
+    const { data: focusSessions = [], isLoading: sessionsLoading } = useFocusSessions();
+    const { data: transactions = [], isLoading: transactionsLoading } = useTransactions();
+    const { data: journalEntries = [], isLoading: journalLoading } = useJournalEntries();
+
+    const state: GlobalState = {
+        tasks,
+        focusSessions,
+        transactions,
+        journalEntries
+    };
+
     const stats = useDailyStats(state);
 
+    const isDataLoading = tasksLoading || sessionsLoading || transactionsLoading || journalLoading;
+
     useEffect(() => {
+        if (isDataLoading) return;
+
         const fetchInsight = async () => {
-            if (state.tasks.length === 0 && state.focusSessions.length === 0) {
+            if (tasks.length === 0 && focusSessions.length === 0) {
                 setInsight("Nexus 已就绪。从添加任务或记录心情开始吧。");
                 return;
             }
@@ -29,14 +43,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ state }) => {
         };
 
         fetchInsight();
-    }, [state.tasks.length, state.focusSessions.length, state.transactions.length, state.journalEntries.length]);
+    }, [tasks.length, focusSessions.length, transactions.length, journalEntries.length, isDataLoading]);
 
     const recentActivities = [
-        ...state.tasks.filter(t => t.status === 'done').map(t => ({ type: 'task', data: t, time: t.completedAt })),
-        ...state.focusSessions.map(s => ({ type: 'focus', data: s, time: s.timestamp })),
-        ...state.transactions.map(t => ({ type: 'transaction', data: t, time: t.timestamp })),
-        ...state.journalEntries.map(j => ({ type: 'journal', data: j, time: j.timestamp }))
-    ].sort((a, b) => b.time - a.time).slice(0, 10);
+        ...tasks.filter(t => t.status === 'done').map(t => ({ type: 'task' as const, data: t, time: t.completedAt || '' })),
+        ...focusSessions.map(s => ({ type: 'focus' as const, data: s, time: s.startedAt })),
+        ...transactions.map(t => ({ type: 'transaction' as const, data: t, time: t.timestamp })),
+        ...journalEntries.map(j => ({ type: 'journal' as const, data: j, time: j.timestamp }))
+    ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 10);
+
+    if (isDataLoading) {
+        return (
+            <div className="h-full flex items-center justify-center">
+                <p className="text-muted-foreground">加载中...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="h-full flex flex-col gap-6 p-2 md:p-0">

@@ -21,8 +21,9 @@ export const getEndOfDay = (date: Date = new Date()): number => {
 /**
  * Format timestamp for display with time, date, and optional year
  * Shows HH:MM 月DD format, and adds year if different from current year
+ * Accepts both number (milliseconds) and ISO string formats
  */
-export const formatTime = (timestamp: number): string => {
+export const formatTime = (timestamp: number | string): string => {
     const date = new Date(timestamp);
     const now = new Date();
     const currentYear = now.getFullYear();

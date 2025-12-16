@@ -3,6 +3,7 @@ import { FocusSession, Task } from '@/types';
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Clock01Icon, PlayIcon, PauseIcon } from "@hugeicons/core-free-icons";
 import { getStartOfDay } from '@/utils';
+import { useCreateFocusSession } from '@/hooks/useSupabaseData';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
@@ -10,16 +11,17 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 
 interface FocusModuleProps {
     sessions: FocusSession[];
-    setSessions: React.Dispatch<React.SetStateAction<FocusSession[]>>;
     tasks: Task[];
 }
 
-export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions, tasks }) => {
+export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, tasks }) => {
     const [isActive, setIsActive] = useState(false);
     const [hasStarted, setHasStarted] = useState(false);
     const [duration, setDuration] = useState(25);
     const [timeLeft, setTimeLeft] = useState(25 * 60);
     const [selectedTaskId, setSelectedTaskId] = useState<string>('');
+
+    const createSession = useCreateFocusSession();
 
     const formatDuration = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
@@ -62,15 +64,13 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
         }
     }, [duration]);
 
-    const completeSession = () => {
-        const newSession: FocusSession = {
-            id: crypto.randomUUID(),
+    const completeSession = async () => {
+        await createSession.mutateAsync({
             durationSeconds: duration * 60,
-            timestamp: Date.now(),
             completed: true,
             taskId: selectedTaskId || undefined
-        };
-        setSessions(prev => [newSession, ...prev]);
+        });
+
         setSelectedTaskId(''); // Reset task selection after completion
         if (Notification.permission === 'granted') {
             new Notification("Nexus 专注", { body: "专注时段结束。休息一下吧。" });
@@ -100,8 +100,9 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
 
     const focusMinutesToday = Math.floor(
         sessions.filter(s => {
-            const startOfDay = getStartOfDay();
-            return s.timestamp > startOfDay;
+            const startOfDay = new Date();
+            startOfDay.setHours(0, 0, 0, 0);
+            return new Date(s.startedAt) > startOfDay;
         }).reduce((acc, curr) => acc + curr.durationSeconds, 0) / 60
     );
 
@@ -123,11 +124,11 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
                     </label>
                     <Select
                         value={selectedTaskId}
-                        onValueChange={(val) => setSelectedTaskId(val)}
+                        onValueChange={(val) => setSelectedTaskId(val || '')}
                         disabled={hasStarted}
                     >
                         <SelectTrigger className="w-full p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-amber-500 outline-none transition-colors">
-                            <SelectValue placeholder="无特定任务" />
+                            <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value='None'>无特定任务</SelectItem>
@@ -218,7 +219,10 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, setSessions,
 
                     <Slider
                         value={[duration]}
-                        onValueChange={(val) => setDuration(Number(val[0]))}
+                        onValueChange={(val) => {
+                            const newVal = Array.isArray(val) ? val[0] : val;
+                            setDuration(Number(newVal));
+                        }}
                         min={5}
                         max={120}
                         step={5}

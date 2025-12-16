@@ -3,7 +3,8 @@ import { Task, TaskStatus, TaskPriority, Subtask } from '../../types';
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon, Task01Icon, Delete02Icon, FlashIcon, ArrowDown01Icon, ArrowUp01Icon } from "@hugeicons/core-free-icons";
 import { generateSubtasks } from '../../services/aiService';
-import { formatTime } from '../../utils';
+import { formatTime } from '../../utils/dateTime';
+import { useCreateTask, useUpdateTask, useDeleteTask } from '@/hooks/useSupabaseData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,65 +15,64 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 
 interface TaskModuleProps {
     tasks: Task[];
-    setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
 }
 
-export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
+export const TaskModule: React.FC<TaskModuleProps> = ({ tasks }) => {
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const [priority, setPriority] = useState<TaskPriority>(TaskPriority.MEDIUM);
 
-    const addTask = (e: React.FormEvent) => {
+    const createTask = useCreateTask();
+    const updateTask = useUpdateTask();
+    const deleteTask = useDeleteTask();
+
+    const addTask = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newTaskTitle.trim()) return;
 
-        const newTask: Task = {
-            id: crypto.randomUUID(),
+        await createTask.mutateAsync({
             title: newTaskTitle,
             status: TaskStatus.TODO,
             priority: priority,
-            createdAt: Date.now(),
             tags: [],
             subtasks: []
-        };
+        });
 
-        setTasks(prev => [newTask, ...prev]);
         setNewTaskTitle('');
         setPriority(TaskPriority.MEDIUM);
     };
 
-    const toggleTaskStatus = (id: string) => {
-        setTasks(prev => prev.map(t => {
-            if (t.id !== id) return t;
-            const newStatus = t.status === TaskStatus.DONE ? TaskStatus.TODO : TaskStatus.DONE;
-            return {
-                ...t,
-                status: newStatus,
-                completedAt: newStatus === TaskStatus.DONE ? Date.now() : undefined
-            };
-        }));
+    const toggleTaskStatus = async (task: Task) => {
+        const newStatus = task.status === TaskStatus.DONE ? TaskStatus.TODO : TaskStatus.DONE;
+        await updateTask.mutateAsync({
+            id: task.id,
+            updates: {
+                status: newStatus
+            }
+        });
     };
 
-    const deleteTask = (id: string) => {
-        setTasks(prev => prev.filter(t => t.id !== id));
+    const handleDeleteTask = async (id: string) => {
+        await deleteTask.mutateAsync(id);
     };
 
-    const addSubtasks = (taskId: string, newSubtasks: Subtask[]) => {
-        setTasks(prev => prev.map(t => {
-            if (t.id !== taskId) return t;
-            return { ...t, subtasks: [...(t.subtasks || []), ...newSubtasks] };
-        }));
+    const addSubtasks = async (task: Task, newSubtasks: Subtask[]) => {
+        await updateTask.mutateAsync({
+            id: task.id,
+            updates: {
+                subtasks: [...(task.subtasks || []), ...newSubtasks]
+            }
+        });
     };
 
-    const toggleSubtask = (taskId: string, subtaskId: string) => {
-        setTasks(prev => prev.map(t => {
-            if (t.id !== taskId) return t;
-            return {
-                ...t,
-                subtasks: t.subtasks?.map(st =>
-                    st.id === subtaskId ? { ...st, completed: !st.completed } : st
-                )
-            };
-        }));
+    const toggleSubtask = async (task: Task, subtaskId: string) => {
+        const updatedSubtasks = task.subtasks?.map(st =>
+            st.id === subtaskId ? { ...st, completed: !st.completed } : st
+        );
+
+        await updateTask.mutateAsync({
+            id: task.id,
+            updates: { subtasks: updatedSubtasks }
+        });
     };
 
     const priorityColor = (p: TaskPriority) => {
@@ -99,7 +99,7 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
             if (pOrder[a.priority] !== pOrder[b.priority]) {
                 return pOrder[b.priority] - pOrder[a.priority];
             }
-            return b.createdAt - a.createdAt;
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         }
         return a.status === TaskStatus.DONE ? 1 : -1;
     });
@@ -133,7 +133,7 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
                         onValueChange={(value) => setPriority(value as TaskPriority)}
                     >
                         <SelectTrigger className="w-[80px]">
-                            <SelectValue placeholder="优先级" />
+                            <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value={TaskPriority.LOW}>低</SelectItem>
@@ -158,10 +158,10 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks, setTasks }) => {
                         <TaskItem
                             key={task.id}
                             task={task}
-                            onToggleStatus={() => toggleTaskStatus(task.id)}
-                            onDelete={() => deleteTask(task.id)}
-                            onAddSubtasks={addSubtasks}
-                            onToggleSubtask={(subtaskId) => toggleSubtask(task.id, subtaskId)}
+                            onToggleStatus={() => toggleTaskStatus(task)}
+                            onDelete={() => handleDeleteTask(task.id)}
+                            onAddSubtasks={(newSubtasks) => addSubtasks(task, newSubtasks)}
+                            onToggleSubtask={(subtaskId) => toggleSubtask(task, subtaskId)}
                             priorityColor={priorityColor}
                             getPriorityLabel={getPriorityLabel}
                         />
@@ -176,7 +176,7 @@ interface TaskItemProps {
     task: Task;
     onToggleStatus: () => void;
     onDelete: () => void;
-    onAddSubtasks: (taskId: string, newSubtasks: Subtask[]) => void;
+    onAddSubtasks: (newSubtasks: Subtask[]) => void;
     onToggleSubtask: (subtaskId: string) => void;
     priorityColor: (p: TaskPriority) => string;
     getPriorityLabel: (p: TaskPriority) => string;
@@ -205,7 +205,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
                 title: step,
                 completed: false
             }));
-            onAddSubtasks(task.id, newSubtasks);
+            onAddSubtasks(newSubtasks);
             setExpanded(true);
         } finally {
             setLoading(false);
@@ -259,7 +259,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
                         )}
 
                         {task.subtasks && task.subtasks.length > 0 && (
-                            <CollapsibleTrigger asChild>
+                            <CollapsibleTrigger>
                                 <Button
                                     variant="ghost"
                                     size="icon"

@@ -3,14 +3,13 @@ import { JournalEntry } from '@/types';
 import { HugeiconsIcon } from "@hugeicons/react";
 import { BookOpen01Icon, SentIcon, SparklesIcon } from "@hugeicons/core-free-icons";
 import { analyzeJournalEntry } from '@/services/aiService';
+import { useCreateJournalEntry, useUpdateJournalEntry } from '@/hooks/useSupabaseData';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface JournalModuleProps {
     entries: JournalEntry[];
-    setEntries: React.Dispatch<React.SetStateAction<JournalEntry[]>>;
 }
 
 const MOODS = [
@@ -21,10 +20,14 @@ const MOODS = [
     { value: 'great', label: '🤩', color: 'bg-emerald-100 text-emerald-600 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-900' }
 ];
 
-export const JournalModule: React.FC<JournalModuleProps> = ({ entries, setEntries }) => {
+export const JournalModule: React.FC<JournalModuleProps> = ({ entries }) => {
     const [content, setContent] = useState('');
     const [mood, setMood] = useState('neutral');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [pendingEntryId, setPendingEntryId] = useState<string | null>(null);
+
+    const createEntry = useCreateJournalEntry();
+    const updateEntry = useUpdateJournalEntry();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -32,23 +35,27 @@ export const JournalModule: React.FC<JournalModuleProps> = ({ entries, setEntrie
 
         setIsAnalyzing(true);
 
-        const tempId = crypto.randomUUID();
-        const newEntry: JournalEntry = {
-            id: tempId,
+        // Create entry with initial placeholder
+        const newEntry = await createEntry.mutateAsync({
             content,
             mood: mood as any,
-            timestamp: Date.now(),
             aiReflection: "分析中..."
-        };
+        });
 
-        setEntries(prev => [newEntry, ...prev]);
+        setPendingEntryId(newEntry.id);
         setContent('');
 
+        // Get AI reflection and update
         const reflection = await analyzeJournalEntry(content, mood);
 
-        setEntries(prev => prev.map(entry =>
-            entry.id === tempId ? { ...entry, aiReflection: reflection } : entry
-        ));
+        await updateEntry.mutateAsync({
+            id: newEntry.id,
+            updates: {
+                aiReflection: reflection
+            }
+        });
+
+        setPendingEntryId(null);
         setIsAnalyzing(false);
     };
 
@@ -66,18 +73,17 @@ export const JournalModule: React.FC<JournalModuleProps> = ({ entries, setEntrie
                 {/* Editor Area */}
                 <div className="flex-1 p-6 flex flex-col border-r">
                     <div className="flex gap-2 mb-4 justify-center">
-                        <ToggleGroup type="single" value={mood} onValueChange={(val) => val && setMood(val)}>
-                            {MOODS.map(m => (
-                                <ToggleGroupItem
-                                    key={m.value}
-                                    value={m.value}
-                                    className={`w-10 h-10 rounded-full text-xl border-2 transition-all data-[state=on]:scale-110 data-[state=on]:shadow-sm ${mood === m.value ? m.color : 'border-transparent opacity-50 grayscale hover:grayscale-0'
-                                        }`}
-                                >
-                                    {m.label}
-                                </ToggleGroupItem>
-                            ))}
-                        </ToggleGroup>
+                        {MOODS.map(m => (
+                            <button
+                                key={m.value}
+                                type="button"
+                                onClick={() => setMood(m.value)}
+                                className={`w-10 h-10 rounded-full text-xl border-2 transition-all hover:scale-110 ${mood === m.value ? `${m.color} scale-110 shadow-sm` : 'border-transparent opacity-50 grayscale hover:grayscale-0'
+                                    }`}
+                            >
+                                {m.label}
+                            </button>
+                        ))}
                     </div>
 
                     <Textarea

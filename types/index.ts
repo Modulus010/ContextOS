@@ -34,8 +34,8 @@ export interface Task {
     title: string;
     status: TaskStatus;
     priority: TaskPriority;
-    createdAt: number;
-    completedAt?: number;
+    createdAt: string;
+    completedAt?: string;
     tags: string[];
     subtasks?: Subtask[];
 }
@@ -44,7 +44,7 @@ export interface FocusSession {
     id: string;
     durationSeconds: number;
     taskId?: string;
-    timestamp: number;
+    startedAt: string;
     completed: boolean;
 }
 
@@ -59,14 +59,14 @@ export interface Transaction {
     description: string;
     type: TransactionType;
     category: string;
-    timestamp: number;
+    timestamp: string;
 }
 
 export interface JournalEntry {
     id: string;
     content: string;
     mood: 'great' | 'good' | 'neutral' | 'bad' | 'terrible';
-    timestamp: number;
+    timestamp: string;
     aiReflection?: string;
 }
 
