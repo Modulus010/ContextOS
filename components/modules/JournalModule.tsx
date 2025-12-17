@@ -95,8 +95,8 @@ export const JournalModule: React.FC<JournalModuleProps> = ({ entries }) => {
                                             type="button"
                                             onClick={() => setMood(m.value)}
                                             className={`w-14 h-14 rounded-full text-2xl border-2 transition-all hover:scale-110 active:scale-95 ${mood === m.value
-                                                    ? `${m.color} scale-110 shadow-md`
-                                                    : 'border-muted opacity-40 hover:opacity-100 hover:border-muted-foreground'
+                                                ? `${m.color} scale-110 shadow-md`
+                                                : 'border-muted opacity-40 hover:opacity-100 hover:border-muted-foreground'
                                                 }`}
                                             aria-label={m.value}
                                         >
@@ -127,7 +127,7 @@ export const JournalModule: React.FC<JournalModuleProps> = ({ entries }) => {
                                 >
                                     {isAnalyzing ? (
                                         <>
-                                            <SparklesIcon className="w-4 h-4 mr-2 animate-pulse" />
+                                            <HugeiconsIcon icon={SparklesIcon} className="w-4 h-4 mr-2 animate-pulse" />
                                             AI 分析中...
                                         </>
                                     ) : (
