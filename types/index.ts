@@ -36,6 +36,7 @@ export interface Task {
     priority: TaskPriority;
     createdAt: string;
     completedAt?: string;
+    deadline?: string;
     tags: string[];
     subtasks?: Subtask[];
 }

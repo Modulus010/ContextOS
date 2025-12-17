@@ -16,8 +16,6 @@ export default function TasksPage() {
     }
 
     return (
-        <div className="p-4 md:p-8 max-w-7xl mx-auto">
-            <TaskModule tasks={tasks} />
-        </div>
+        <TaskModule tasks={tasks} />
     );
 }

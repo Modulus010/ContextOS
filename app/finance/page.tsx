@@ -16,8 +16,6 @@ export default function FinancePage() {
     }
 
     return (
-        <div className="p-4 md:p-8 max-w-7xl mx-auto">
-            <FinanceModule transactions={transactions} />
-        </div>
+        <FinanceModule transactions={transactions} />
     );
 }

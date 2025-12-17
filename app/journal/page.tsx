@@ -16,8 +16,6 @@ export default function JournalPage() {
     }
 
     return (
-        <div className="p-4 md:p-8 max-w-7xl mx-auto">
-            <JournalModule entries={entries} />
-        </div>
+        <JournalModule entries={entries} />
     );
 }

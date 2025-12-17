@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { Transaction, TransactionType } from '@/types';
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Wallet01Icon, PlusSignIcon } from "@hugeicons/core-free-icons";
+import { Wallet01Icon, PlusSignIcon, ArrowUpRightIcon, ArrowDownLeftIcon } from "@hugeicons/core-free-icons";
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatTime } from '@/utils/dateTime';
 import { useCreateTransaction } from '@/hooks/useSupabaseData';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface FinanceModuleProps {
     transactions: Transaction[];
@@ -93,98 +96,189 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions }) =>
         return curr.type === TransactionType.INCOME ? acc + curr.amount : acc - curr.amount;
     }, 0);
 
-    return (
-        <Card className="h-full flex flex-col overflow-hidden">
-            <CardHeader>
-                <div>
-                    <CardTitle className="flex items-center gap-2">
-                        <HugeiconsIcon icon={Wallet01Icon} className="text-emerald-600 dark:text-emerald-500" />
-                        现金流
-                    </CardTitle>
-                    <CardDescription>追踪价值交换</CardDescription>
-                </div>
-                <div className="text-right">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider">余额</p>
-                    <p className={`text-2xl font-mono font-bold ${totalBalance >= 0 ? 'text-foreground' : 'text-destructive'}`}>
-                        ¥{totalBalance.toFixed(2)}
-                    </p>
-                </div>
-            </CardHeader>
+    const totalIncome = transactions
+        .filter(t => t.type === TransactionType.INCOME)
+        .reduce((acc, curr) => acc + curr.amount, 0);
 
-            <CardContent className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 h-full overflow-hidden">
-                {/* Left: Input & List */}
-                <div className="flex flex-col h-full overflow-hidden">
-                    <Card className="mb-4 bg-muted/30">
-                        <CardContent className="p-4">
-                            <form onSubmit={addTransaction}>
-                                <div className="flex gap-2 mb-2">
-                                    <div className="flex w-full gap-2">
-                                        <Button
-                                            type="button"
-                                            onClick={() => setType(TransactionType.EXPENSE)}
-                                            variant={type === TransactionType.EXPENSE ? "default" : "outline"}
-                                            className={`flex-1 ${type === TransactionType.EXPENSE ? 'bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-900/50 dark:text-rose-300' : ''}`}
-                                        >
-                                            支出
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            onClick={() => setType(TransactionType.INCOME)}
-                                            variant={type === TransactionType.INCOME ? "default" : "outline"}
-                                            className={`flex-1 ${type === TransactionType.INCOME ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-300' : ''}`}
-                                        >
-                                            收入
-                                        </Button>
-                                    </div>
+    const totalExpense = transactions
+        .filter(t => t.type === TransactionType.EXPENSE)
+        .reduce((acc, curr) => acc + curr.amount, 0);
+
+    return (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+            {/* Header Section */}
+            <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-emerald-500/10">
+                            <HugeiconsIcon icon={Wallet01Icon} className="w-6 h-6 text-emerald-600 dark:text-emerald-500" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-tight">现金流</h1>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                追踪价值交换
+                            </p>
+                        </div>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">当前余额</p>
+                        <p className={`text-3xl font-mono font-bold ${totalBalance >= 0 ? 'text-foreground' : 'text-destructive'
+                            }`}>
+                            ¥{totalBalance.toFixed(2)}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <Separator />
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Card className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-muted-foreground mb-1">总收入</p>
+                                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-500">
+                                    ¥{totalIncome.toFixed(2)}
+                                </p>
+                            </div>
+                            <div className="p-3 rounded-full bg-emerald-500/10">
+                                <HugeiconsIcon icon={ArrowUpRightIcon} className="w-6 h-6 text-emerald-600" />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-muted-foreground mb-1">总支出</p>
+                                <p className="text-2xl font-bold text-rose-600 dark:text-rose-500">
+                                    ¥{totalExpense.toFixed(2)}
+                                </p>
+                            </div>
+                            <div className="p-3 rounded-full bg-rose-500/10">
+                                <HugeiconsIcon icon={ArrowDownLeftIcon} className="w-6 h-6 text-rose-600" />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Left: Quick Add & Transaction List */}
+                <div className="space-y-6">
+                    {/* Quick Add Form */}
+                    <Card>
+                        <CardContent className="p-6">
+                            <h3 className="text-lg font-semibold mb-4">快速记账</h3>
+                            <form onSubmit={addTransaction} className="space-y-4">
+                                <div className="flex gap-2">
+                                    <Button
+                                        type="button"
+                                        onClick={() => setType(TransactionType.EXPENSE)}
+                                        variant={type === TransactionType.EXPENSE ? "default" : "outline"}
+                                        className={`flex-1 ${type === TransactionType.EXPENSE
+                                                ? 'bg-rose-500 hover:bg-rose-600 text-white'
+                                                : 'hover:bg-rose-50 hover:text-rose-600'
+                                            }`}
+                                    >
+                                        💸 支出
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        onClick={() => setType(TransactionType.INCOME)}
+                                        variant={type === TransactionType.INCOME ? "default" : "outline"}
+                                        className={`flex-1 ${type === TransactionType.INCOME
+                                                ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                                                : 'hover:bg-emerald-50 hover:text-emerald-600'
+                                            }`}
+                                    >
+                                        💰 收入
+                                    </Button>
                                 </div>
+
                                 <div className="flex gap-2">
                                     <Input
                                         type="text"
-                                        placeholder="描述"
+                                        placeholder="描述（例如：午餐、工资）"
                                         className="flex-1"
                                         value={description}
                                         onChange={e => setDescription(e.target.value)}
                                     />
                                     <Input
                                         type="number"
-                                        placeholder="¥"
-                                        className="w-20"
+                                        step="0.01"
+                                        placeholder="金额"
+                                        className="w-28"
                                         value={amount}
                                         onChange={e => setAmount(e.target.value)}
                                     />
-                                    <Button type="submit" size="icon">
-                                        <HugeiconsIcon icon={PlusSignIcon} className="w-5 h-5" />
+                                    <Button type="submit" size="icon" className="shrink-0">
+                                        <HugeiconsIcon icon={PlusSignIcon} />
                                     </Button>
                                 </div>
                             </form>
                         </CardContent>
                     </Card>
 
-                    <div className="flex-1 overflow-y-auto space-y-2 pr-2">
-                        {transactions.map(t => (
-                            <div key={t.id} className="flex justify-between items-center p-3 bg-card border rounded-lg text-sm transition-colors">
-                                <div className="flex flex-col">
-                                    <span className="font-medium">{t.description}</span>
-                                    <span className="text-xs text-muted-foreground">{formatTime(t.timestamp)}</span>
-                                </div>
-                                <span className={`font-mono font-medium ${t.type === TransactionType.INCOME ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                                    {t.type === TransactionType.INCOME ? '+' : '-'}¥{t.amount}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
+                    {/* Transaction List */}
+                    <Card>
+                        <CardContent className="p-6">
+                            <h3 className="text-lg font-semibold mb-4">最近记录</h3>
+                            <ScrollArea className="h-[400px] pr-4">
+                                {transactions.length === 0 ? (
+                                    <div className="text-center py-12 text-muted-foreground">
+                                        <div className="inline-flex p-4 rounded-full bg-muted/50 mb-4">
+                                            <HugeiconsIcon icon={Wallet01Icon} className="w-8 h-8" />
+                                        </div>
+                                        <p>暂无交易记录</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {transactions.map(t => (
+                                            <div
+                                                key={t.id}
+                                                className="flex justify-between items-center p-4 rounded-lg border hover:bg-muted/50 transition-colors"
+                                            >
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="font-medium truncate">{t.description}</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {formatTime(t.timestamp)}
+                                                    </p>
+                                                </div>
+                                                <Badge
+                                                    variant="outline"
+                                                    className={`ml-3 font-mono text-base ${t.type === TransactionType.INCOME
+                                                            ? 'text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20'
+                                                            : 'text-rose-600 border-rose-200 bg-rose-50 dark:bg-rose-900/20'
+                                                        }`}
+                                                >
+                                                    {t.type === TransactionType.INCOME ? '+' : '-'}¥{t.amount.toFixed(2)}
+                                                </Badge>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </ScrollArea>
+                        </CardContent>
+                    </Card>
                 </div>
 
                 {/* Right: Visualization */}
-                <Card className="bg-muted/30 flex flex-col">
-                    <CardContent className="p-4 flex flex-col h-full">
-                        <h3 className="text-sm font-semibold text-muted-foreground mb-4 flex items-center gap-2">
-                            <HugeiconsIcon icon={Wallet01Icon} className="w-4 h-4" /> 余额变化
+                <Card>
+                    <CardContent className="p-6">
+                        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <HugeiconsIcon icon={Wallet01Icon} className="w-5 h-5" />
+                            余额变化趋势
                         </h3>
-                        <div className="flex-1 min-h-[150px]">
+                        <div className="h-[400px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={chartData} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e6edf3" />
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#e6edf3" className="dark:opacity-20" />
                                     <XAxis
                                         dataKey="timestamp"
                                         type="number"
@@ -192,14 +286,26 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions }) =>
                                         domain={["dataMin", "dataMax"]}
                                         tickFormatter={formatTime}
                                         tick={{ fill: '#94a3b8' }}
+                                        fontSize={12}
                                     />
-                                    <YAxis tick={{ fill: '#94a3b8' }} />
+                                    <YAxis
+                                        tick={{ fill: '#94a3b8' }}
+                                        fontSize={12}
+                                    />
                                     <Tooltip
                                         content={<CustomTooltip />}
                                         cursor={{ stroke: '#0ea5a4', strokeWidth: 1 }}
                                     />
                                     {segments.map((seg, idx) => (
-                                        <Line key={idx} data={seg.data} dataKey="balance" stroke={seg.color} strokeWidth={2} dot={false} isAnimationActive={false} />
+                                        <Line
+                                            key={idx}
+                                            data={seg.data}
+                                            dataKey="balance"
+                                            stroke={seg.color}
+                                            strokeWidth={3}
+                                            dot={false}
+                                            isAnimationActive={false}
+                                        />
                                     ))}
                                     <Line
                                         data={chartData}
@@ -209,19 +315,19 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions }) =>
                                             const { cx, cy, payload } = dotProps as any;
                                             if (cx == null || cy == null) return null;
                                             const fill = payload.delta >= 0 ? '#10b981' : '#f43f5e';
-                                            return <circle cx={cx} cy={cy} r={4} fill={fill} stroke="#fff" strokeWidth={1} />;
+                                            return <circle cx={cx} cy={cy} r={5} fill={fill} stroke="#fff" strokeWidth={2} />;
                                         }}
-                                        activeDot={{ r: 6 }}
+                                        activeDot={{ r: 7, strokeWidth: 2 }}
                                     />
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
-                        <div className="mt-4 text-xs text-muted-foreground text-center">
-                            消费影响心理安全感。请有意识地记录。
-                        </div>
+                        <p className="mt-6 text-xs text-center text-muted-foreground">
+                            💡 消费影响心理安全感。请有意识地记录。
+                        </p>
                     </CardContent>
                 </Card>
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 };

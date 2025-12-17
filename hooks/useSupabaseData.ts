@@ -37,17 +37,17 @@ export function useCreateTask() {
         onMutate: async (newTask) => {
             await queryClient.cancelQueries({ queryKey: QUERY_KEYS.TASKS });
             const previousTasks = queryClient.getQueryData<Task[]>(QUERY_KEYS.TASKS);
-            
+
             queryClient.setQueryData<Task[]>(QUERY_KEYS.TASKS, (old = []) => [
                 ...old,
-                { 
-                    ...newTask, 
+                {
+                    ...newTask,
                     id: `temp-${Date.now()}`,
                     createdAt: new Date().toISOString(),
                     completedAt: undefined
                 } as Task
             ]);
-            
+
             return { previousTasks };
         },
         onError: (_err, _newTask, context) => {
@@ -69,11 +69,11 @@ export function useUpdateTask() {
         onMutate: async ({ id, updates }) => {
             await queryClient.cancelQueries({ queryKey: QUERY_KEYS.TASKS });
             const previousTasks = queryClient.getQueryData<Task[]>(QUERY_KEYS.TASKS);
-            
+
             queryClient.setQueryData<Task[]>(QUERY_KEYS.TASKS, (old = []) =>
                 old.map(task => task.id === id ? { ...task, ...updates } : task)
             );
-            
+
             return { previousTasks };
         },
         onError: (_err, _variables, context) => {
@@ -94,11 +94,11 @@ export function useDeleteTask() {
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: QUERY_KEYS.TASKS });
             const previousTasks = queryClient.getQueryData<Task[]>(QUERY_KEYS.TASKS);
-            
+
             queryClient.setQueryData<Task[]>(QUERY_KEYS.TASKS, (old = []) =>
                 old.filter(task => task.id !== id)
             );
-            
+
             return { previousTasks };
         },
         onError: (_err, _id, context) => {
@@ -127,16 +127,16 @@ export function useCreateFocusSession() {
         onMutate: async (newSession) => {
             await queryClient.cancelQueries({ queryKey: QUERY_KEYS.FOCUS_SESSIONS });
             const previousSessions = queryClient.getQueryData<FocusSession[]>(QUERY_KEYS.FOCUS_SESSIONS);
-            
+
             queryClient.setQueryData<FocusSession[]>(QUERY_KEYS.FOCUS_SESSIONS, (old = []) => [
                 ...old,
-                { 
-                    ...newSession, 
+                {
+                    ...newSession,
                     id: `temp-${Date.now()}`,
                     startedAt: new Date().toISOString()
                 } as FocusSession
             ]);
-            
+
             return { previousSessions };
         },
         onError: (_err, _newSession, context) => {
@@ -158,11 +158,11 @@ export function useUpdateFocusSession() {
         onMutate: async ({ id, updates }) => {
             await queryClient.cancelQueries({ queryKey: QUERY_KEYS.FOCUS_SESSIONS });
             const previousSessions = queryClient.getQueryData<FocusSession[]>(QUERY_KEYS.FOCUS_SESSIONS);
-            
+
             queryClient.setQueryData<FocusSession[]>(QUERY_KEYS.FOCUS_SESSIONS, (old = []) =>
                 old.map(session => session.id === id ? { ...session, ...updates } : session)
             );
-            
+
             return { previousSessions };
         },
         onError: (_err, _variables, context) => {
@@ -183,11 +183,11 @@ export function useDeleteFocusSession() {
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: QUERY_KEYS.FOCUS_SESSIONS });
             const previousSessions = queryClient.getQueryData<FocusSession[]>(QUERY_KEYS.FOCUS_SESSIONS);
-            
+
             queryClient.setQueryData<FocusSession[]>(QUERY_KEYS.FOCUS_SESSIONS, (old = []) =>
                 old.filter(session => session.id !== id)
             );
-            
+
             return { previousSessions };
         },
         onError: (_err, _id, context) => {
@@ -216,16 +216,16 @@ export function useCreateTransaction() {
         onMutate: async (newTransaction) => {
             await queryClient.cancelQueries({ queryKey: QUERY_KEYS.TRANSACTIONS });
             const previousTransactions = queryClient.getQueryData<Transaction[]>(QUERY_KEYS.TRANSACTIONS);
-            
+
             queryClient.setQueryData<Transaction[]>(QUERY_KEYS.TRANSACTIONS, (old = []) => [
                 ...old,
-                { 
-                    ...newTransaction, 
+                {
+                    ...newTransaction,
                     id: `temp-${Date.now()}`,
                     timestamp: new Date().toISOString()
                 } as Transaction
             ]);
-            
+
             return { previousTransactions };
         },
         onError: (_err, _newTransaction, context) => {
@@ -247,11 +247,11 @@ export function useUpdateTransaction() {
         onMutate: async ({ id, updates }) => {
             await queryClient.cancelQueries({ queryKey: QUERY_KEYS.TRANSACTIONS });
             const previousTransactions = queryClient.getQueryData<Transaction[]>(QUERY_KEYS.TRANSACTIONS);
-            
+
             queryClient.setQueryData<Transaction[]>(QUERY_KEYS.TRANSACTIONS, (old = []) =>
                 old.map(transaction => transaction.id === id ? { ...transaction, ...updates } : transaction)
             );
-            
+
             return { previousTransactions };
         },
         onError: (_err, _variables, context) => {
@@ -272,11 +272,11 @@ export function useDeleteTransaction() {
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: QUERY_KEYS.TRANSACTIONS });
             const previousTransactions = queryClient.getQueryData<Transaction[]>(QUERY_KEYS.TRANSACTIONS);
-            
+
             queryClient.setQueryData<Transaction[]>(QUERY_KEYS.TRANSACTIONS, (old = []) =>
                 old.filter(transaction => transaction.id !== id)
             );
-            
+
             return { previousTransactions };
         },
         onError: (_err, _id, context) => {
@@ -305,16 +305,16 @@ export function useCreateJournalEntry() {
         onMutate: async (newEntry) => {
             await queryClient.cancelQueries({ queryKey: QUERY_KEYS.JOURNAL_ENTRIES });
             const previousEntries = queryClient.getQueryData<JournalEntry[]>(QUERY_KEYS.JOURNAL_ENTRIES);
-            
+
             queryClient.setQueryData<JournalEntry[]>(QUERY_KEYS.JOURNAL_ENTRIES, (old = []) => [
                 ...old,
-                { 
-                    ...newEntry, 
+                {
+                    ...newEntry,
                     id: `temp-${Date.now()}`,
                     timestamp: new Date().toISOString()
                 } as JournalEntry
             ]);
-            
+
             return { previousEntries };
         },
         onError: (_err, _newEntry, context) => {
@@ -336,11 +336,11 @@ export function useUpdateJournalEntry() {
         onMutate: async ({ id, updates }) => {
             await queryClient.cancelQueries({ queryKey: QUERY_KEYS.JOURNAL_ENTRIES });
             const previousEntries = queryClient.getQueryData<JournalEntry[]>(QUERY_KEYS.JOURNAL_ENTRIES);
-            
+
             queryClient.setQueryData<JournalEntry[]>(QUERY_KEYS.JOURNAL_ENTRIES, (old = []) =>
                 old.map(entry => entry.id === id ? { ...entry, ...updates } : entry)
             );
-            
+
             return { previousEntries };
         },
         onError: (_err, _variables, context) => {
@@ -361,11 +361,11 @@ export function useDeleteJournalEntry() {
         onMutate: async (id) => {
             await queryClient.cancelQueries({ queryKey: QUERY_KEYS.JOURNAL_ENTRIES });
             const previousEntries = queryClient.getQueryData<JournalEntry[]>(QUERY_KEYS.JOURNAL_ENTRIES);
-            
+
             queryClient.setQueryData<JournalEntry[]>(QUERY_KEYS.JOURNAL_ENTRIES, (old = []) =>
                 old.filter(entry => entry.id !== id)
             );
-            
+
             return { previousEntries };
         },
         onError: (_err, _id, context) => {

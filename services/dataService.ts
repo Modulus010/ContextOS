@@ -25,6 +25,7 @@ export const tasksService = {
             priority: row.priority,
             createdAt: row.created_at,
             completedAt: row.completed_at,
+            deadline: row.deadline,
             tags: row.tags || [],
             subtasks: row.subtasks || [],
         }));
@@ -40,6 +41,7 @@ export const tasksService = {
                 status: task.status,
                 priority: task.priority,
                 completed_at: task.completedAt,
+                deadline: task.deadline,
                 tags: task.tags,
                 subtasks: task.subtasks || [],
             })
@@ -68,6 +70,7 @@ export const tasksService = {
         if (updates.status !== undefined) dbUpdates.status = updates.status;
         if (updates.priority !== undefined) dbUpdates.priority = updates.priority;
         if (updates.completedAt !== undefined) dbUpdates.completed_at = updates.completedAt;
+        if (updates.deadline !== undefined) dbUpdates.deadline = updates.deadline;
         if (updates.tags !== undefined) dbUpdates.tags = updates.tags;
         if (updates.subtasks !== undefined) dbUpdates.subtasks = updates.subtasks;
 
@@ -87,6 +90,7 @@ export const tasksService = {
             priority: data.priority,
             createdAt: data.created_at,
             completedAt: data.completed_at,
+            deadline: data.deadline,
             tags: data.tags || [],
             subtasks: data.subtasks || [],
         };

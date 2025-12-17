@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { Task, TaskStatus, TaskPriority, Subtask } from '../../types';
 import { HugeiconsIcon } from "@hugeicons/react";
-import { PlusSignIcon, Task01Icon, Delete02Icon, FlashIcon, ArrowDown01Icon, ArrowUp01Icon } from "@hugeicons/core-free-icons";
+import { PlusSignIcon, Task01Icon, Delete02Icon, FlashIcon, ArrowDown01Icon, ArrowUp01Icon, Clock01Icon } from "@hugeicons/core-free-icons";
 import { generateSubtasks } from '../../services/aiService';
 import { formatTime } from '../../utils/dateTime';
 import { useCreateTask, useUpdateTask, useDeleteTask } from '@/hooks/useSupabaseData';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Separator } from "@/components/ui/separator";
+import { Calendar24 } from "@/components/date-and-time-picker";
 
 interface TaskModuleProps {
     tasks: Task[];
@@ -20,42 +22,158 @@ interface TaskModuleProps {
 export const TaskModule: React.FC<TaskModuleProps> = ({ tasks }) => {
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const [priority, setPriority] = useState<TaskPriority>(TaskPriority.MEDIUM);
+    const [deadline, setDeadline] = useState<Date | undefined>(undefined);
+    const [deadlineTime, setDeadlineTime] = useState<string>('23:59');
 
     const createTask = useCreateTask();
-    const updateTask = useUpdateTask();
-    const deleteTask = useDeleteTask();
 
     const addTask = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newTaskTitle.trim()) return;
 
+        let deadlineISO: string | undefined = undefined;
+        if (deadline && deadlineTime) {
+            const [hours, minutes] = deadlineTime.split(':');
+            const deadlineDate = new Date(deadline);
+            deadlineDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+            deadlineISO = deadlineDate.toISOString();
+        }
+
         await createTask.mutateAsync({
             title: newTaskTitle,
             status: TaskStatus.TODO,
             priority: priority,
+            deadline: deadlineISO,
             tags: [],
             subtasks: []
         });
 
         setNewTaskTitle('');
         setPriority(TaskPriority.MEDIUM);
+        setDeadline(undefined);
+        setDeadlineTime('23:59');
     };
 
-    const toggleTaskStatus = async (task: Task) => {
+    const sortedTasks = [...tasks].sort((a, b) => {
+        if (a.status === b.status) {
+            const pOrder = { [TaskPriority.HIGH]: 3, [TaskPriority.MEDIUM]: 2, [TaskPriority.LOW]: 1 };
+            if (pOrder[a.priority] !== pOrder[b.priority]) {
+                return pOrder[b.priority] - pOrder[a.priority];
+            }
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+        return a.status === TaskStatus.DONE ? 1 : -1;
+    });
+
+    return (
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+            {/* Header Section */}
+            <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                        <HugeiconsIcon icon={Task01Icon} className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">任务流</h1>
+                        <p className="text-sm text-muted-foreground mt-1">
+                            捕捉任务以减轻认知负担
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <Separator />
+
+            {/* Quick Add Form */}
+            <form onSubmit={addTask} className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <Input
+                        type="text"
+                        value={newTaskTitle}
+                        onChange={(e) => setNewTaskTitle(e.target.value)}
+                        placeholder="需要完成什么？"
+                        className="flex-1 h-11"
+                    />
+                    <Button type="submit" size="lg" className="sm:w-auto w-full">
+                        <HugeiconsIcon icon={PlusSignIcon} className="mr-2" />
+                        添加任务
+                    </Button>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                    <Select
+                        value={priority}
+                        onValueChange={(value) => setPriority(value as TaskPriority)}
+                    >
+                        <SelectTrigger className="w-[140px]">
+                            <SelectValue placeholder="优先级" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={TaskPriority.LOW}>🟢 低优先级</SelectItem>
+                            <SelectItem value={TaskPriority.MEDIUM}>🟡 中优先级</SelectItem>
+                            <SelectItem value={TaskPriority.HIGH}>🔴 高优先级</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <Calendar24
+                        date={deadline}
+                        time={deadlineTime}
+                        onDateChange={setDeadline}
+                        onTimeChange={setDeadlineTime}
+                    />
+                </div>
+            </form>
+
+            <Separator />
+
+            {/* Tasks List */}
+            <div className="space-y-3">
+                {sortedTasks.length === 0 ? (
+                    <div className="text-center py-16 px-4">
+                        <div className="inline-flex p-4 rounded-full bg-muted/50 mb-4">
+                            <HugeiconsIcon icon={Task01Icon} className="w-10 h-10 text-muted-foreground" />
+                        </div>
+                        <h3 className="text-xl font-semibold mb-2">暂无任务</h3>
+                        <p className="text-muted-foreground max-w-sm mx-auto">
+                            看起来你现在很清闲！添加一个新任务来开始高效的一天吧。
+                        </p>
+                    </div>
+                ) : (
+                    <div className="space-y-2">
+                        {sortedTasks.map(task => (
+                            <TaskItem key={task.id} task={task} />
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+interface TaskItemProps {
+    task: Task;
+}
+
+const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
+    const [expanded, setExpanded] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const updateTask = useUpdateTask();
+    const deleteTask = useDeleteTask();
+
+    const toggleTaskStatus = async () => {
         const newStatus = task.status === TaskStatus.DONE ? TaskStatus.TODO : TaskStatus.DONE;
         await updateTask.mutateAsync({
             id: task.id,
-            updates: {
-                status: newStatus
-            }
+            updates: { status: newStatus }
         });
     };
 
-    const handleDeleteTask = async (id: string) => {
-        await deleteTask.mutateAsync(id);
+    const handleDelete = async () => {
+        await deleteTask.mutateAsync(task.id);
     };
 
-    const addSubtasks = async (task: Task, newSubtasks: Subtask[]) => {
+    const addSubtasks = async (newSubtasks: Subtask[]) => {
         await updateTask.mutateAsync({
             id: task.id,
             updates: {
@@ -64,11 +182,10 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks }) => {
         });
     };
 
-    const toggleSubtask = async (task: Task, subtaskId: string) => {
+    const toggleSubtask = async (subtaskId: string) => {
         const updatedSubtasks = task.subtasks?.map(st =>
             st.id === subtaskId ? { ...st, completed: !st.completed } : st
         );
-
         await updateTask.mutateAsync({
             id: task.id,
             updates: { subtasks: updatedSubtasks }
@@ -93,113 +210,6 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks }) => {
         }
     };
 
-    const sortedTasks = [...tasks].sort((a, b) => {
-        if (a.status === b.status) {
-            const pOrder = { [TaskPriority.HIGH]: 3, [TaskPriority.MEDIUM]: 2, [TaskPriority.LOW]: 1 };
-            if (pOrder[a.priority] !== pOrder[b.priority]) {
-                return pOrder[b.priority] - pOrder[a.priority];
-            }
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        }
-        return a.status === TaskStatus.DONE ? 1 : -1;
-    });
-
-    return (
-        <Card className="h-full flex flex-col overflow-hidden">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <HugeiconsIcon icon={Task01Icon} className="text-primary" />
-                    任务流
-                </CardTitle>
-                <CardDescription>
-                    捕捉任务以减轻认知负担
-                </CardDescription>
-            </CardHeader>
-
-            <div className="p-4 border-b">
-                <form onSubmit={addTask} className="flex gap-2 items-center">
-                    <div className="relative flex-1">
-                        <Input
-                            type="text"
-                            value={newTaskTitle}
-                            onChange={(e) => setNewTaskTitle(e.target.value)}
-                            placeholder="需要完成什么？"
-                            className="w-full"
-                        />
-                    </div>
-
-                    <Select
-                        value={priority}
-                        onValueChange={(value) => setPriority(value as TaskPriority)}
-                    >
-                        <SelectTrigger className="w-[80px]">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value={TaskPriority.LOW}>低</SelectItem>
-                            <SelectItem value={TaskPriority.MEDIUM}>中</SelectItem>
-                            <SelectItem value={TaskPriority.HIGH}>高</SelectItem>
-                        </SelectContent>
-                    </Select>
-
-                    <Button type="submit" size="icon">
-                        <HugeiconsIcon icon={PlusSignIcon} className="w-4 h-4" />
-                    </Button>
-                </form>
-            </div>
-
-            <CardContent className="flex-1 overflow-y-auto p-4 space-y-3">
-                {sortedTasks.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-center">
-                        <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-full mb-4">
-                            <HugeiconsIcon icon={Task01Icon} className="w-8 h-8 text-slate-400" />
-                        </div>
-                        <h3 className="text-lg font-medium text-foreground">暂无任务</h3>
-                        <p className="text-muted-foreground max-w-sm mt-2">
-                            看起来你现在很清闲！添加一个新任务来开始高效的一天吧。
-                        </p>
-                    </div>
-                ) : (
-                    sortedTasks.map(task => (
-                        <TaskItem
-                            key={task.id}
-                            task={task}
-                            onToggleStatus={() => toggleTaskStatus(task)}
-                            onDelete={() => handleDeleteTask(task.id)}
-                            onAddSubtasks={(newSubtasks) => addSubtasks(task, newSubtasks)}
-                            onToggleSubtask={(subtaskId) => toggleSubtask(task, subtaskId)}
-                            priorityColor={priorityColor}
-                            getPriorityLabel={getPriorityLabel}
-                        />
-                    ))
-                )}
-            </CardContent>
-        </Card>
-    );
-};
-
-interface TaskItemProps {
-    task: Task;
-    onToggleStatus: () => void;
-    onDelete: () => void;
-    onAddSubtasks: (newSubtasks: Subtask[]) => void;
-    onToggleSubtask: (subtaskId: string) => void;
-    priorityColor: (p: TaskPriority) => string;
-    getPriorityLabel: (p: TaskPriority) => string;
-}
-
-const TaskItem: React.FC<TaskItemProps> = ({
-    task,
-    onToggleStatus,
-    onDelete,
-    onAddSubtasks,
-    onToggleSubtask,
-    priorityColor,
-    getPriorityLabel
-}) => {
-    const [expanded, setExpanded] = useState(false);
-    const [loading, setLoading] = useState(false);
-
     const handleBreakDown = async () => {
         if (loading) return;
 
@@ -211,7 +221,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
                 title: step,
                 completed: false
             }));
-            onAddSubtasks(newSubtasks);
+            await addSubtasks(newSubtasks);
             setExpanded(true);
         } finally {
             setLoading(false);
@@ -219,84 +229,125 @@ const TaskItem: React.FC<TaskItemProps> = ({
     };
 
     return (
-        <Card
-            className={`transition-all duration-200 overflow-hidden ${task.status === TaskStatus.DONE
-                ? 'bg-muted/50 opacity-60'
-                : 'hover:shadow-md'
-                }`}
-        >
+        <Card className="transition-all hover:shadow-md">
             <Collapsible open={expanded} onOpenChange={setExpanded}>
-                <div className="flex items-center justify-between p-3">
-                    <div className="flex items-center gap-3 flex-1">
-                        <Checkbox
-                            checked={task.status === TaskStatus.DONE}
-                            onCheckedChange={() => onToggleStatus()}
-                        />
+                <div className="p-4">
+                    <div className="flex items-start gap-4">
+                        {/* Checkbox */}
+                        <div className="pt-1">
+                            <Checkbox
+                                checked={task.status === TaskStatus.DONE}
+                                onCheckedChange={toggleTaskStatus}
+                                className="h-5 w-5"
+                            />
+                        </div>
 
-                        <div className="flex flex-col flex-1">
-                            <span className={`text-sm font-medium ${task.status === TaskStatus.DONE ? 'line-through text-muted-foreground' : ''}`}>
-                                {task.title}
-                            </span>
-                            <div className="flex gap-2 mt-1 items-center">
-                                <Badge variant="outline" className={priorityColor(task.priority)}>
-                                    {getPriorityLabel(task.priority)}
-                                </Badge>
-                                {task.status === TaskStatus.DONE && task.completedAt && (
-                                    <span className="text-[10px] text-muted-foreground">
-                                        完成于 {formatTime(task.completedAt)}
-                                    </span>
-                                )}
+                        {/* Task Content */}
+                        <div className="flex-1 min-w-0 space-y-2">
+                            <div className="space-y-1">
+                                <h3 className={`text-base font-medium leading-relaxed ${task.status === TaskStatus.DONE
+                                        ? 'line-through text-muted-foreground'
+                                        : 'text-foreground'
+                                    }`}>
+                                    {task.title}
+                                </h3>
+
+                                {/* Metadata */}
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <Badge
+                                        variant="outline"
+                                        className={`${priorityColor(task.priority)} text-xs`}
+                                    >
+                                        {getPriorityLabel(task.priority)}
+                                    </Badge>
+
+                                    {task.deadline && task.status !== TaskStatus.DONE && (
+                                        <Badge variant="outline" className="text-xs gap-1">
+                                            <HugeiconsIcon icon={Clock01Icon} className="w-3 h-3" />
+                                            {new Date(task.deadline).toLocaleString('zh-CN', {
+                                                month: 'numeric',
+                                                day: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </Badge>
+                                    )}
+
+                                    {task.status === TaskStatus.DONE && task.completedAt && (
+                                        <span className="text-xs text-muted-foreground">
+                                            完成于 {formatTime(task.completedAt)}
+                                        </span>
+                                    )}
+
+                                    {task.subtasks && task.subtasks.length > 0 && (
+                                        <Badge variant="secondary" className="text-xs">
+                                            {task.subtasks.filter(st => st.completed).length}/{task.subtasks.length} 子任务
+                                        </Badge>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div className="flex items-center gap-1">
-                        {task.status !== TaskStatus.DONE && (
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={handleBreakDown}
-                                disabled={loading}
-                                className={loading ? 'animate-pulse text-primary' : ''}
-                                title="AI 拆解：将任务碎片化"
-                            >
-                                <HugeiconsIcon icon={FlashIcon} className="w-4 h-4" />
-                            </Button>
-                        )}
-
-                        {task.subtasks && task.subtasks.length > 0 && (
-                            <CollapsibleTrigger>
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-1">
+                            {task.status !== TaskStatus.DONE && (
                                 <Button
                                     variant="ghost"
                                     size="icon"
+                                    onClick={handleBreakDown}
+                                    disabled={loading}
+                                    title="AI 拆解：将任务碎片化"
+                                    className="h-9 w-9"
                                 >
-                                    {expanded ? <HugeiconsIcon icon={ArrowUp01Icon} className="w-4 h-4" /> : <HugeiconsIcon icon={ArrowDown01Icon} className="w-4 h-4" />}
+                                    <HugeiconsIcon icon={FlashIcon} className={loading ? 'animate-pulse' : ''} />
                                 </Button>
-                            </CollapsibleTrigger>
-                        )}
+                            )}
 
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={onDelete}
-                            className="hover:text-destructive"
-                        >
-                            <HugeiconsIcon icon={Delete02Icon} className="w-4 h-4" />
-                        </Button>
+                            {task.subtasks && task.subtasks.length > 0 && (
+                                <CollapsibleTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-9 w-9"
+                                    >
+                                        <HugeiconsIcon
+                                            icon={expanded ? ArrowUp01Icon : ArrowDown01Icon}
+                                        />
+                                    </Button>
+                                </CollapsibleTrigger>
+                            )}
+
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={handleDelete}
+                                className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                                <HugeiconsIcon icon={Delete02Icon} />
+                            </Button>
+                        </div>
                     </div>
                 </div>
 
                 {/* Subtasks */}
                 {task.subtasks && task.subtasks.length > 0 && (
                     <CollapsibleContent>
-                        <div className="bg-muted/30 border-t p-3 pl-10 space-y-2">
+                        <Separator />
+                        <div className="px-4 pb-4 pt-3 space-y-2">
                             {task.subtasks.map(st => (
-                                <div key={st.id} className="flex items-center gap-2">
+                                <div
+                                    key={st.id}
+                                    className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-muted/50 transition-colors"
+                                >
                                     <Checkbox
                                         checked={st.completed}
-                                        onCheckedChange={() => onToggleSubtask(st.id)}
+                                        onCheckedChange={() => toggleSubtask(st.id)}
+                                        className="h-4 w-4"
                                     />
-                                    <span className={`text-xs ${st.completed ? 'line-through text-muted-foreground' : ''}`}>
+                                    <span className={`text-sm flex-1 ${st.completed
+                                            ? 'line-through text-muted-foreground'
+                                            : 'text-foreground'
+                                        }`}>
                                         {st.title}
                                     </span>
                                 </div>

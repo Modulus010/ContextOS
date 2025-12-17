@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { FocusSession, Task } from '@/types';
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Clock01Icon, PlayIcon, PauseIcon } from "@hugeicons/core-free-icons";
+import { Clock01Icon, PlayIcon, PauseIcon, RefreshIcon } from "@hugeicons/core-free-icons";
 import { getStartOfDay } from '@/utils';
 import { useCreateFocusSession } from '@/hooks/useSupabaseData';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 
 interface FocusModuleProps {
     sessions: FocusSession[];
@@ -107,136 +110,168 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, tasks }) => 
     );
 
     return (
-        <Card className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 h-full flex flex-col transition-colors">
-            <CardHeader>
-                <CardTitle>
-                    <HugeiconsIcon icon={Clock01Icon} />
-                    深度工作
-                </CardTitle>
-                <CardDescription>单任务处理以减少认知残留</CardDescription>
-            </CardHeader>
-
-            <div className="flex-1 flex flex-col items-center p-6 space-y-6 overflow-y-auto">
-                {/* Task Selection */}
-                <div className="w-full max-w-xs">
-                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                        意图
-                    </label>
-                    <Select
-                        value={selectedTaskId}
-                        onValueChange={(val) => setSelectedTaskId(val || '')}
-                        disabled={hasStarted}
-                    >
-                        <SelectTrigger className="w-full p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-amber-500 outline-none transition-colors">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value='None'>无特定任务</SelectItem>
-                            {activeTasks.map(t => (
-                                <SelectItem key={t.id} value={t.id}>
-                                    {t.title}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                {/* Timer UI */}
-                <div className="relative w-56 h-56 flex items-center justify-center">
-                    <svg className="absolute w-full h-full" viewBox="0 0 224 224" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img">
-                        <g transform="rotate(-90 112 112)">
-                            <circle
-                                cx="112"
-                                cy="112"
-                                r="100"
-                                stroke="currentColor"
-                                strokeWidth="8"
-                                fill="transparent"
-                                vectorEffect="non-scaling-stroke"
-                                strokeLinecap="round"
-                                className="text-slate-100 dark:text-slate-800 transition-colors"
-                            />
-                            <circle
-                                cx="112"
-                                cy="112"
-                                r="100"
-                                stroke="currentColor"
-                                strokeWidth="8"
-                                fill="transparent"
-                                vectorEffect="non-scaling-stroke"
-                                strokeLinecap="round"
-                                strokeDasharray={CIRCUMFERENCE}
-                                strokeDashoffset={CIRCUMFERENCE * (1 - progress / 100)}
-                                className="text-amber-500 transition-all duration-1000 ease-linear"
-                            />
-                        </g>
-                    </svg>
-                    <div className="text-5xl font-mono font-bold text-slate-800 dark:text-slate-100 z-10">
-                        {formatDuration(timeLeft)}
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+            {/* Header Section */}
+            <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-amber-500/10">
+                            <HugeiconsIcon icon={Clock01Icon} className="w-6 h-6 text-amber-600 dark:text-amber-500" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-tight">深度工作</h1>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                单任务处理以减少认知残留
+                            </p>
+                        </div>
                     </div>
-                </div>
-
-                {/* Controls */}
-                <div className="flex gap-4">
-                    <Button
-                        onClick={toggleTimer}
-                        className={`px-8 py-3 rounded-full font-semibold shadow-lg transition-transform active:scale-95 flex items-center gap-2 ${isActive
-                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                            : 'bg-amber-500 text-white hover:bg-amber-600'
-                            }`}
-                    >
-                        {isActive ? <><HugeiconsIcon icon={PauseIcon} className="w-5 h-5" /> 暂停</> : <><HugeiconsIcon icon={PlayIcon} className="w-5 h-5" /> 专注</>}
-                    </Button>
-                    <Button
-                        onClick={resetTimer}
-                        className="px-4 py-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 font-medium transition-colors"
-                    >
-                        重置
-                    </Button>
-                </div>
-
-                {/* Duration Customization */}
-                <div className={`w-full max-w-xs transition-opacity duration-300 ${hasStarted ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
-                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 text-center">
-                        时长 : {duration} 分钟
-                    </label>
-
-                    <div className="flex justify-between gap-2 mb-3">
-                        {PRESETS.map(preset => (
-                            <Button
-                                key={preset}
-                                onClick={() => setDuration(preset)}
-                                disabled={hasStarted}
-                                className={`flex-1 py-1 rounded text-xs font-medium border transition-colors ${duration === preset
-                                    ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-700'
-                                    : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-amber-200 dark:hover:border-amber-700'
-                                    }`}
-                            >
-                                {preset}分
-                            </Button>
-                        ))}
-                    </div>
-
-                    <Slider
-                        value={[duration]}
-                        onValueChange={(val) => {
-                            const newVal = Array.isArray(val) ? val[0] : val;
-                            setDuration(Number(newVal));
-                        }}
-                        min={5}
-                        max={120}
-                        step={5}
-                        aria-label="专注时长（分钟）"
-                        disabled={hasStarted}
-                    >
-                    </Slider>
-                </div>
-
-                {/* Stats Snippet */}
-                <div className="text-xs text-center text-slate-400">
-                    今日专注总时长: {focusMinutesToday} 分钟
+                    <Badge variant="secondary" className="text-sm px-4 py-2">
+                        今日 {focusMinutesToday} 分钟
+                    </Badge>
                 </div>
             </div>
-        </Card>
+
+            <Separator />
+
+            <Card>
+                <CardContent className="p-8">{/* Task Selection */}
+                    <div className="mb-8">
+                        <label className="block text-sm font-medium mb-3">
+                            当前意图
+                        </label>
+                        <Select
+                            value={selectedTaskId}
+                            onValueChange={(val) => setSelectedTaskId(val || '')}
+                            disabled={hasStarted}
+                        >
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="选择一个任务或无特定任务" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value='None'>🎯 无特定任务</SelectItem>
+                                {activeTasks.map(t => (
+                                    <SelectItem key={t.id} value={t.id}>
+                                        {t.title}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <Separator className="my-8" />
+
+                    {/* Timer UI */}
+                    <div className="flex flex-col items-center space-y-8">
+                        <div className="relative w-64 h-64 flex items-center justify-center">
+                            <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 256 256">
+                                <circle
+                                    cx="128"
+                                    cy="128"
+                                    r="112"
+                                    stroke="currentColor"
+                                    strokeWidth="12"
+                                    fill="transparent"
+                                    className="text-muted/30"
+                                />
+                                <circle
+                                    cx="128"
+                                    cy="128"
+                                    r="112"
+                                    stroke="currentColor"
+                                    strokeWidth="12"
+                                    fill="transparent"
+                                    strokeDasharray={CIRCUMFERENCE}
+                                    strokeDashoffset={CIRCUMFERENCE * (1 - progress / 100)}
+                                    className="text-amber-500 transition-all duration-1000 ease-linear"
+                                    strokeLinecap="round"
+                                />
+                            </svg>
+                            <div className="text-center z-10">
+                                <div className="text-6xl font-mono font-bold mb-2">
+                                    {formatDuration(timeLeft)}
+                                </div>
+                                <Progress value={progress} className="w-32 h-1" />
+                            </div>
+                        </div>
+
+                        {/* Controls */}
+                        <div className="flex items-center gap-4">
+                            <Button
+                                onClick={toggleTimer}
+                                size="lg"
+                                className={`px-8 h-14 rounded-full font-semibold transition-all ${isActive
+                                        ? 'bg-secondary hover:bg-secondary/80'
+                                        : 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/30'
+                                    }`}
+                            >
+                                <HugeiconsIcon
+                                    icon={isActive ? PauseIcon : PlayIcon}
+                                    className="w-5 h-5 mr-2"
+                                />
+                                {isActive ? '暂停' : '开始专注'}
+                            </Button>
+                            <Button
+                                onClick={resetTimer}
+                                variant="outline"
+                                size="lg"
+                                className="h-14 rounded-full"
+                                disabled={!hasStarted}
+                            >
+                                <HugeiconsIcon icon={RefreshIcon} className="w-5 h-5 mr-2" />
+                                重置
+                            </Button>
+                        </div>
+                    </div>
+
+                    <Separator className="my-8" />
+
+                    {/* Duration Customization */}
+                    <div className={`w-full space-y-4 transition-opacity duration-300 ${hasStarted ? 'opacity-40 pointer-events-none' : 'opacity-100'
+                        }`}>
+                        <label className="block text-sm font-medium text-center">
+                            专注时长：{duration} 分钟
+                        </label>
+
+                        <div className="flex justify-center gap-2 mb-4">
+                            {PRESETS.map(preset => (
+                                <Button
+                                    key={preset}
+                                    onClick={() => setDuration(preset)}
+                                    disabled={hasStarted}
+                                    variant={duration === preset ? "default" : "outline"}
+                                    size="sm"
+                                    className={duration === preset ? 'bg-amber-500 hover:bg-amber-600' : ''}
+                                >
+                                    {preset}分
+                                </Button>
+                            ))}
+                        </div>
+
+                        <Slider
+                            value={[duration]}
+                            onValueChange={(val) => {
+                                const newVal = Array.isArray(val) ? val[0] : val;
+                                setDuration(Number(newVal));
+                            }}
+                            min={5}
+                            max={120}
+                            step={5}
+                            aria-label="专注时长（分钟）"
+                            disabled={hasStarted}
+                            className="w-full"
+                        />
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Info Card */}
+            <Card className="bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-900/50">
+                <CardContent className="p-4">
+                    <p className="text-sm text-center text-amber-900 dark:text-amber-200">
+                        💡 专注模式将帮助你进入心流状态，建议每次至少专注 25 分钟
+                    </p>
+                </CardContent>
+            </Card>
+        </div>
     );
 };

@@ -17,8 +17,6 @@ export default function FocusPage() {
     }
 
     return (
-        <div className="p-4 md:p-8 max-w-7xl mx-auto">
-            <FocusModule sessions={sessions} tasks={tasks} />
-        </div>
+        <FocusModule sessions={sessions} tasks={tasks} />
     );
 }

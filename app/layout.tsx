@@ -49,7 +49,7 @@ export default function RootLayout({
                                         <SidebarTrigger className="-ml-1" />
                                         <ModeToggle />
                                     </header>
-                                    <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950">
+                                    <div>
                                         {children}
                                     </div>
                                 </main>
