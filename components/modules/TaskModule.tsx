@@ -5,6 +5,7 @@ import { PlusSignIcon, Task01Icon, Delete02Icon, FlashIcon, ArrowDown01Icon, Arr
 import { generateSubtasks } from '../../services/aiService';
 import { formatTime } from '../../utils/dateTime';
 import { useCreateTask, useUpdateTask, useDeleteTask } from '@/hooks/useSupabaseData';
+import { InlineEditor } from '@/components/common/InlineEditor';
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -192,6 +193,50 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
         });
     };
 
+    const addSubtask = async (title: string) => {
+        if (!title.trim()) {
+            return;
+        }
+
+        const newSubtask: Subtask = {
+            id: crypto.randomUUID(),
+            title: title.trim(),
+            completed: false
+        };
+
+        await updateTask.mutateAsync({
+            id: task.id,
+            updates: {
+                subtasks: [...(task.subtasks || []), newSubtask]
+            }
+        });
+    };
+
+    const updateSubtask = async (subtaskId: string, newTitle: string) => {
+        const updatedSubtasks = task.subtasks?.map(st =>
+            st.id === subtaskId ? { ...st, title: newTitle } : st
+        );
+        await updateTask.mutateAsync({
+            id: task.id,
+            updates: { subtasks: updatedSubtasks }
+        });
+    };
+
+    const updateTaskTitle = async (newTitle: string) => {
+        await updateTask.mutateAsync({
+            id: task.id,
+            updates: { title: newTitle }
+        });
+    };
+
+    const deleteSubtask = async (subtaskId: string) => {
+        const updatedSubtasks = task.subtasks?.filter(st => st.id !== subtaskId);
+        await updateTask.mutateAsync({
+            id: task.id,
+            updates: { subtasks: updatedSubtasks }
+        });
+    };
+
     const priorityColor = (p: TaskPriority) => {
         switch (p) {
             case TaskPriority.HIGH: return 'text-rose-600 bg-rose-50 border-rose-100 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-900/50';
@@ -245,12 +290,17 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
                         {/* Task Content */}
                         <div className="flex-1 min-w-0 space-y-2">
                             <div className="space-y-1">
-                                <h3 className={`text-base font-medium leading-relaxed ${task.status === TaskStatus.DONE
+                                <InlineEditor
+                                    value={task.title}
+                                    onSave={updateTaskTitle}
+                                    onDelete={handleDelete}
+                                    placeholder="输入任务标题..."
+                                    displayClassName={`text-base font-medium leading-relaxed ${task.status === TaskStatus.DONE
                                         ? 'line-through text-muted-foreground'
                                         : 'text-foreground'
-                                    }`}>
-                                    {task.title}
-                                </h3>
+                                        }`}
+                                    inputClassName="h-9 text-base"
+                                />
 
                                 {/* Metadata */}
                                 <div className="flex flex-wrap items-center gap-2">
@@ -303,19 +353,17 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
                                 </Button>
                             )}
 
-                            {task.subtasks && task.subtasks.length > 0 && (
-                                <CollapsibleTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-9 w-9"
-                                    >
-                                        <HugeiconsIcon
-                                            icon={expanded ? ArrowUp01Icon : ArrowDown01Icon}
-                                        />
-                                    </Button>
-                                </CollapsibleTrigger>
-                            )}
+                            <CollapsibleTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-9 w-9"
+                                >
+                                    <HugeiconsIcon
+                                        icon={expanded ? ArrowUp01Icon : ArrowDown01Icon}
+                                    />
+                                </Button>
+                            </CollapsibleTrigger>
 
                             <Button
                                 variant="ghost"
@@ -330,31 +378,44 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
                 </div>
 
                 {/* Subtasks */}
-                {task.subtasks && task.subtasks.length > 0 && (
-                    <CollapsibleContent>
-                        <Separator />
-                        <div className="px-4 pb-4 pt-3 space-y-2">
-                            {task.subtasks.map(st => (
-                                <div
-                                    key={st.id}
-                                    className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-muted/50 transition-colors"
-                                >
-                                    <Checkbox
-                                        checked={st.completed}
-                                        onCheckedChange={() => toggleSubtask(st.id)}
-                                        className="h-4 w-4"
-                                    />
-                                    <span className={`text-sm flex-1 ${st.completed
+                <CollapsibleContent>
+                    <Separator />
+                    <div className="px-4 pb-4 pt-3 space-y-2">
+                        {task.subtasks?.map(st => (
+                            <div
+                                key={st.id}
+                                className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-muted/50 transition-colors"
+                            >
+                                <Checkbox
+                                    checked={st.completed}
+                                    onCheckedChange={() => toggleSubtask(st.id)}
+                                />
+                                <div className="flex-1">
+                                    <InlineEditor
+                                        value={st.title}
+                                        onSave={(newTitle) => updateSubtask(st.id, newTitle)}
+                                        onDelete={() => deleteSubtask(st.id)}
+                                        placeholder="输入子任务..."
+                                        displayClassName={`text-sm ${st.completed
                                             ? 'line-through text-muted-foreground'
                                             : 'text-foreground'
-                                        }`}>
-                                        {st.title}
-                                    </span>
+                                            }`}
+                                    />
                                 </div>
-                            ))}
+                            </div>
+                        ))}
+
+                        {/* Add Subtask */}
+                        <div className="py-2 px-3">
+                            <InlineEditor
+                                value=""
+                                onSave={addSubtask}
+                                placeholder="输入子任务..."
+                            />
                         </div>
-                    </CollapsibleContent>
-                )}
+
+                    </div>
+                </CollapsibleContent>
             </Collapsible>
         </Card>
     );
