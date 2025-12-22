@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Transaction, TransactionType } from '@/types';
+import { Transaction, TransactionType, type TransactionTypeType } from '@/types';
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Wallet01Icon, PlusSignIcon, ArrowUpRightIcon, ArrowDownLeftIcon } from "@hugeicons/core-free-icons";
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { formatTime } from '@/utils/dateTime';
+import { format } from 'date-fns';
 import { useCreateTransaction } from '@/hooks/useSupabaseData';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,9 +19,31 @@ interface FinanceModuleProps {
 export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions }) => {
     const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('');
-    const [type, setType] = useState<TransactionType>(TransactionType.EXPENSE);
+    const [type, setType] = useState<TransactionTypeType>(TransactionType.EXPENSE);
 
     const createTransaction = useCreateTransaction();
+
+    // Format time for chart tick labels
+    const formatChartTime = (timestamp: number | string): string => {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const dateYear = date.getFullYear();
+
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+
+        const timeStr = `${hours}:${minutes}`;
+        const dateStr = `${month}/${day}`;
+
+        if (dateYear !== currentYear) {
+            return `${dateYear}/${dateStr}`;
+        }
+
+        return `${dateStr}`;
+    };
 
     const addTransaction = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -182,8 +204,8 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions }) =>
                                         onClick={() => setType(TransactionType.EXPENSE)}
                                         variant={type === TransactionType.EXPENSE ? "default" : "outline"}
                                         className={`flex-1 ${type === TransactionType.EXPENSE
-                                                ? 'bg-rose-500 hover:bg-rose-600 text-white'
-                                                : 'hover:bg-rose-50 hover:text-rose-600'
+                                            ? 'bg-rose-500 hover:bg-rose-600 text-white'
+                                            : 'hover:bg-rose-50 hover:text-rose-600'
                                             }`}
                                     >
                                         💸 支出
@@ -193,8 +215,8 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions }) =>
                                         onClick={() => setType(TransactionType.INCOME)}
                                         variant={type === TransactionType.INCOME ? "default" : "outline"}
                                         className={`flex-1 ${type === TransactionType.INCOME
-                                                ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                                                : 'hover:bg-emerald-50 hover:text-emerald-600'
+                                            ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                                            : 'hover:bg-emerald-50 hover:text-emerald-600'
                                             }`}
                                     >
                                         💰 收入
@@ -247,14 +269,14 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions }) =>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="font-medium truncate">{t.description}</p>
                                                     <p className="text-xs text-muted-foreground">
-                                                        {formatTime(t.timestamp)}
+                                                        {format(new Date(t.timestamp), new Date(t.timestamp).getFullYear() !== new Date().getFullYear() ? 'yyyy/M/d HH:mm' : 'M/d HH:mm')}
                                                     </p>
                                                 </div>
                                                 <Badge
                                                     variant="outline"
                                                     className={`ml-3 font-mono text-base ${t.type === TransactionType.INCOME
-                                                            ? 'text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20'
-                                                            : 'text-rose-600 border-rose-200 bg-rose-50 dark:bg-rose-900/20'
+                                                        ? 'text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20'
+                                                        : 'text-rose-600 border-rose-200 bg-rose-50 dark:bg-rose-900/20'
                                                         }`}
                                                 >
                                                     {t.type === TransactionType.INCOME ? '+' : '-'}¥{t.amount.toFixed(2)}
@@ -284,7 +306,7 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ transactions }) =>
                                         type="number"
                                         scale="time"
                                         domain={["dataMin", "dataMax"]}
-                                        tickFormatter={formatTime}
+                                        tickFormatter={formatChartTime}
                                         tick={{ fill: '#94a3b8' }}
                                         fontSize={12}
                                     />

@@ -53,9 +53,7 @@ export const JournalModule: React.FC<JournalModuleProps> = ({ entries }) => {
 
         await updateEntry.mutateAsync({
             id: newEntry.id,
-            updates: {
-                aiReflection: reflection
-            }
+            aiReflection: reflection
         });
 
         setPendingEntryId(null);

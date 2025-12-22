@@ -2,12 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GlobalState } from '@/types';
 import { generateContextualInsight } from '@/services/aiService';
-import { useDailyStats } from '@/hooks';
-import { useTasks, useFocusSessions, useTransactions, useJournalEntries } from '@/hooks/useSupabaseData';
+import { useDailyStats, useTasks, useFocusSessions, useTransactions, useJournalEntries, useRecentActivities } from '@/hooks';
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SparklesIcon, DashboardSquare01Icon, Task01Icon, Clock01Icon, Wallet01Icon } from "@hugeicons/core-free-icons";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatTime } from '@/utils';
+import { format } from 'date-fns';
 
 export const Dashboard: React.FC = () => {
     const [insight, setInsight] = useState<string>("正在分析您的上下文模式...");
@@ -26,6 +25,7 @@ export const Dashboard: React.FC = () => {
     };
 
     const stats = useDailyStats(state);
+    const recentActivities = useRecentActivities(tasks, focusSessions, transactions, journalEntries, 10);
 
     const isDataLoading = tasksLoading || sessionsLoading || transactionsLoading || journalLoading;
 
@@ -45,13 +45,6 @@ export const Dashboard: React.FC = () => {
 
         fetchInsight();
     }, [tasks.length, focusSessions.length, transactions.length, journalEntries.length, isDataLoading]);
-
-    const recentActivities = [
-        ...tasks.filter(t => t.status === 'done').map(t => ({ type: 'task' as const, data: t, time: t.completedAt || '' })),
-        ...focusSessions.map(s => ({ type: 'focus' as const, data: s, time: s.startedAt })),
-        ...transactions.map(t => ({ type: 'transaction' as const, data: t, time: t.timestamp })),
-        ...journalEntries.map(j => ({ type: 'journal' as const, data: j, time: j.timestamp }))
-    ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 10);
 
     if (isDataLoading) {
         return (
@@ -200,7 +193,7 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ item }) => {
             </div>
             <div className="flex-1">
                 <p className="text-sm font-medium text-foreground">{getText()}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{formatTime(item.time)}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{format(new Date(item.time), new Date(item.time).getFullYear() !== new Date().getFullYear() ? 'yyyy/M/d HH:mm' : 'M/d HH:mm')}</p>
             </div>
         </div>
     );

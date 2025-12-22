@@ -1,4 +1,5 @@
-import { GlobalState } from "../types";
+import { GlobalState } from "@/types";
+import { handleClientError } from '@/lib/errors';
 
 export const generateContextualInsight = async (state: GlobalState): Promise<string> => {
     try {
@@ -10,11 +11,21 @@ export const generateContextualInsight = async (state: GlobalState): Promise<str
             body: JSON.stringify({ state }),
         });
 
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || '获取洞察失败');
+        }
+
         const data = await response.json();
-        return data.insight || "持续记录你的一天以解锁更多洞察。";
+
+        if (!data.success) {
+            throw new Error(data.error?.message || '获取洞察失败');
+        }
+
+        return data.data.insight || "持续记录你的一天以解锁更多洞察。";
     } catch (error) {
-        console.error("AI API Error:", error);
-        return "Nexus AI 正在重新校准。请继续保持心流。";
+        console.error("AI Insight Error:", error);
+        return handleClientError(error, "Nexus AI 正在重新校准。请继续保持心流。");
     }
 };
 
@@ -28,11 +39,21 @@ export const analyzeJournalEntry = async (entry: string, mood: string): Promise<
             body: JSON.stringify({ entry, mood }),
         });
 
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || '分析日志失败');
+        }
+
         const data = await response.json();
-        return data.analysis || "感谢你的分享。";
+
+        if (!data.success) {
+            throw new Error(data.error?.message || '分析日志失败');
+        }
+
+        return data.data.analysis || "感谢你的分享。";
     } catch (error) {
         console.error("Journal analysis error:", error);
-        return "反思已保存。";
+        return handleClientError(error, "反思已保存。");
     }
 };
 
@@ -46,10 +67,20 @@ export const generateSubtasks = async (taskTitle: string): Promise<string[]> => 
             body: JSON.stringify({ taskTitle }),
         });
 
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || '生成子任务失败');
+        }
+
         const data = await response.json();
-        return data.subtasks || [];
+
+        if (!data.success) {
+            throw new Error(data.error?.message || '生成子任务失败');
+        }
+
+        return data.data.subtasks || [];
     } catch (error) {
-        console.error("Deepseek Subtask Error:", error);
+        console.error("Subtask generation error:", error);
         return ["确定第一小步", "设定5分钟计时", "执行第一步"];
     }
 }

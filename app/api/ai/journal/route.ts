@@ -1,21 +1,27 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import OpenAI from 'openai';
 import { API_CONFIG } from '@/constants';
+import { ApiResponse, ErrorHandler } from '@/lib/errors';
+import { z } from 'zod';
+import { MoodSchema } from '@/lib/validation/schemas';
 
 const client = new OpenAI({
     apiKey: process.env.API_KEY,
     baseURL: process.env.API_BASE_URL || API_CONFIG.BASE_URL,
 });
 
+const JournalAnalysisSchema = z.object({
+    entry: z.string().min(1, '日志内容不能为空'),
+    mood: MoodSchema,
+});
+
 export async function POST(request: NextRequest) {
     try {
-        const { entry, mood } = await request.json();
+        const body = await request.json();
+        const { entry, mood } = JournalAnalysisSchema.parse(body);
 
-        if (!entry || !mood) {
-            return NextResponse.json(
-                { error: 'Entry and mood are required' },
-                { status: 400 }
-            );
+        if (!process.env.API_KEY) {
+            throw ErrorHandler.aiService('AI 服务未配置');
         }
 
         const response = await client.chat.completions.create({
@@ -33,14 +39,13 @@ export async function POST(request: NextRequest) {
         const text = choice?.message?.content ??
             (typeof choice?.message === 'string' ? choice.message : undefined);
 
-        return NextResponse.json({
+        return ApiResponse.success({
             analysis: text || '感谢你的分享。',
         });
     } catch (error: any) {
-        console.error('Journal analysis error:', error);
-        return NextResponse.json(
-            { analysis: '反思已保存。' },
-            { status: 200 }
-        );
+        if (error.status === 429) {
+            return ApiResponse.error(ErrorHandler.rateLimit());
+        }
+        return ApiResponse.error(error);
     }
 }

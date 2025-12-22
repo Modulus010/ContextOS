@@ -4,13 +4,13 @@
  */
 
 import { useMemo } from 'react';
-import { GlobalState } from '../types';
+import { GlobalState } from '@/types';
 import {
     getCompletedTasksToday,
     getFocusMinutesToday,
     getExpensesToday,
     getLatestMood,
-} from '../utils';
+} from '@/utils';
 
 export interface DailyStats {
     completedToday: number;

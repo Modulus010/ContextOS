@@ -1,87 +1,76 @@
 /**
  * Centralized Types Export
  * All type definitions for the application
+ * 
+ * Use uppercase constants, e.g.:
+ * - TaskStatus.TODO (value: 'todo')
+ * - TaskPriority.HIGH (value: 'high')
+ * - TransactionType.INCOME (value: 'income')
+ * 
+ * @see lib/validation/schemas.ts
  */
 
-export enum ContextMode {
-    DASHBOARD = 'dashboard',
-    TASKS = 'tasks',
-    FOCUS = 'focus',
-    FINANCE = 'finance',
-    JOURNAL = 'journal'
-}
+import { z } from 'zod';
+import {
+    TaskStatusSchema,
+    TaskPrioritySchema,
+    TransactionTypeSchema,
+    ContextModeSchema,
+    MoodSchema
+} from '@/lib/validation/schemas';
 
-export enum TaskStatus {
-    TODO = 'todo',
-    IN_PROGRESS = 'in_progress',
-    DONE = 'done'
-}
+// Export enum constants
+export {
+    TaskStatus,
+    TaskPriority,
+    TransactionType,
+    ContextMode,
+    Mood,
+} from '@/lib/validation/schemas';
+// Re-export types (inferred from Zod schemas)
+export type {
+    Subtask,
+    Task,
+    CreateTaskInput,
+    UpdateTaskInput,
+    FocusSession,
+    CreateFocusSessionInput,
+    UpdateFocusSessionInput,
+    Transaction,
+    CreateTransactionInput,
+    UpdateTransactionInput,
+    JournalEntry,
+    CreateJournalEntryInput,
+    UpdateJournalEntryInput,
+    DailyContext,
+    GlobalState,
+} from '@/lib/validation/schemas';
 
-export enum TaskPriority {
-    HIGH = 'high',
-    MEDIUM = 'medium',
-    LOW = 'low'
-}
+// Re-export schemas for validation
+export {
+    TaskSchema,
+    CreateTaskSchema,
+    UpdateTaskSchema,
+    FocusSessionSchema,
+    CreateFocusSessionSchema,
+    UpdateFocusSessionSchema,
+    TransactionSchema,
+    CreateTransactionSchema,
+    UpdateTransactionSchema,
+    JournalEntrySchema,
+    CreateJournalEntrySchema,
+    UpdateJournalEntrySchema,
+    GlobalStateSchema,
+    TaskStatusSchema,
+    TaskPrioritySchema,
+    TransactionTypeSchema,
+    ContextModeSchema,
+    MoodSchema,
+} from '@/lib/validation/schemas';
 
-export interface Subtask {
-    id: string;
-    title: string;
-    completed: boolean;
-}
-
-export interface Task {
-    id: string;
-    title: string;
-    status: TaskStatus;
-    priority: TaskPriority;
-    createdAt: string;
-    completedAt?: string;
-    deadline?: string;
-    tags: string[];
-    subtasks?: Subtask[];
-}
-
-export interface FocusSession {
-    id: string;
-    durationSeconds: number;
-    taskId?: string;
-    startedAt: string;
-    completed: boolean;
-}
-
-export enum TransactionType {
-    INCOME = 'income',
-    EXPENSE = 'expense'
-}
-
-export interface Transaction {
-    id: string;
-    amount: number;
-    description: string;
-    type: TransactionType;
-    category: string;
-    timestamp: string;
-}
-
-export interface JournalEntry {
-    id: string;
-    content: string;
-    mood: 'great' | 'good' | 'neutral' | 'bad' | 'terrible';
-    timestamp: string;
-    aiReflection?: string;
-}
-
-export interface DailyContext {
-    date: string;
-    tasksCompleted: number;
-    focusMinutes: number;
-    moneySpent: number;
-    mood?: string;
-}
-
-export interface GlobalState {
-    tasks: Task[];
-    focusSessions: FocusSession[];
-    transactions: Transaction[];
-    journalEntries: JournalEntry[];
-}
+// Type aliases for convenience
+export type TaskStatusType = z.infer<typeof TaskStatusSchema>;
+export type TaskPriorityType = z.infer<typeof TaskPrioritySchema>;
+export type TransactionTypeType = z.infer<typeof TransactionTypeSchema>;
+export type ContextModeType = z.infer<typeof ContextModeSchema>;
+export type MoodType = z.infer<typeof MoodSchema>;

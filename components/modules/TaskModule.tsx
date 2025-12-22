@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Task, TaskStatus, TaskPriority, Subtask } from '../../types';
+import { Task, TaskStatus, TaskPriority, type TaskPriorityType, type Subtask } from '../../types';
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon, Task01Icon, Delete02Icon, FlashIcon, ArrowDown01Icon, ArrowUp01Icon, Clock01Icon } from "@hugeicons/core-free-icons";
 import { generateSubtasks } from '../../services/aiService';
-import { formatTime } from '../../utils/dateTime';
-import { useCreateTask, useUpdateTask, useDeleteTask } from '@/hooks/useSupabaseData';
+import { format } from 'date-fns';
+import { useCreateTask, useUpdateTask, useDeleteTask, useSortedTasks } from '@/hooks';
 import { InlineEditor } from '@/components/common/InlineEditor';
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,11 +22,12 @@ interface TaskModuleProps {
 
 export const TaskModule: React.FC<TaskModuleProps> = ({ tasks }) => {
     const [newTaskTitle, setNewTaskTitle] = useState('');
-    const [priority, setPriority] = useState<TaskPriority>(TaskPriority.MEDIUM);
+    const [priority, setPriority] = useState<TaskPriorityType>(TaskPriority.MEDIUM);
     const [deadline, setDeadline] = useState<Date | undefined>(undefined);
     const [deadlineTime, setDeadlineTime] = useState<string>('23:59');
 
     const createTask = useCreateTask();
+    const sortedTasks = useSortedTasks(tasks);
 
     const addTask = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -54,17 +55,6 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks }) => {
         setDeadline(undefined);
         setDeadlineTime('23:59');
     };
-
-    const sortedTasks = [...tasks].sort((a, b) => {
-        if (a.status === b.status) {
-            const pOrder = { [TaskPriority.HIGH]: 3, [TaskPriority.MEDIUM]: 2, [TaskPriority.LOW]: 1 };
-            if (pOrder[a.priority] !== pOrder[b.priority]) {
-                return pOrder[b.priority] - pOrder[a.priority];
-            }
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        }
-        return a.status === TaskStatus.DONE ? 1 : -1;
-    });
 
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -104,7 +94,7 @@ export const TaskModule: React.FC<TaskModuleProps> = ({ tasks }) => {
                 <div className="flex flex-wrap gap-3">
                     <Select
                         value={priority}
-                        onValueChange={(value) => setPriority(value as TaskPriority)}
+                        onValueChange={(value) => setPriority(value as TaskPriorityType)}
                     >
                         <SelectTrigger className="w-[140px]">
                             <SelectValue placeholder="优先级" />
@@ -166,7 +156,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
         const newStatus = task.status === TaskStatus.DONE ? TaskStatus.TODO : TaskStatus.DONE;
         await updateTask.mutateAsync({
             id: task.id,
-            updates: { status: newStatus }
+            status: newStatus
         });
     };
 
@@ -177,9 +167,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
     const addSubtasks = async (newSubtasks: Subtask[]) => {
         await updateTask.mutateAsync({
             id: task.id,
-            updates: {
-                subtasks: [...(task.subtasks || []), ...newSubtasks]
-            }
+            subtasks: [...(task.subtasks || []), ...newSubtasks]
         });
     };
 
@@ -189,7 +177,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
         );
         await updateTask.mutateAsync({
             id: task.id,
-            updates: { subtasks: updatedSubtasks }
+            subtasks: updatedSubtasks
         });
     };
 
@@ -206,9 +194,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
 
         await updateTask.mutateAsync({
             id: task.id,
-            updates: {
-                subtasks: [...(task.subtasks || []), newSubtask]
-            }
+            subtasks: [...(task.subtasks || []), newSubtask]
         });
     };
 
@@ -218,14 +204,14 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
         );
         await updateTask.mutateAsync({
             id: task.id,
-            updates: { subtasks: updatedSubtasks }
+            subtasks: updatedSubtasks
         });
     };
 
     const updateTaskTitle = async (newTitle: string) => {
         await updateTask.mutateAsync({
             id: task.id,
-            updates: { title: newTitle }
+            title: newTitle
         });
     };
 
@@ -233,11 +219,11 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
         const updatedSubtasks = task.subtasks?.filter(st => st.id !== subtaskId);
         await updateTask.mutateAsync({
             id: task.id,
-            updates: { subtasks: updatedSubtasks }
+            subtasks: updatedSubtasks
         });
     };
 
-    const priorityColor = (p: TaskPriority) => {
+    const priorityColor = (p: TaskPriorityType) => {
         switch (p) {
             case TaskPriority.HIGH: return 'text-rose-600 bg-rose-50 border-rose-100 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-900/50';
             case TaskPriority.MEDIUM: return 'text-amber-600 bg-amber-50 border-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-900/50';
@@ -246,7 +232,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
         }
     };
 
-    const getPriorityLabel = (p: TaskPriority) => {
+    const getPriorityLabel = (p: TaskPriorityType) => {
         switch (p) {
             case TaskPriority.HIGH: return '高';
             case TaskPriority.MEDIUM: return '中';
@@ -325,7 +311,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
 
                                     {task.status === TaskStatus.DONE && task.completedAt && (
                                         <span className="text-xs text-muted-foreground">
-                                            完成于 {formatTime(task.completedAt)}
+                                            完成于 {format(new Date(task.completedAt), new Date(task.completedAt).getFullYear() !== new Date().getFullYear() ? 'yyyy/M/d HH:mm' : 'M/d HH:mm')}
                                         </span>
                                     )}
 

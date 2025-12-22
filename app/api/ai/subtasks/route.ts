@@ -1,21 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import OpenAI from 'openai';
 import { API_CONFIG } from '@/constants';
+import { ApiResponse, ErrorHandler } from '@/lib/errors';
+import { z } from 'zod';
 
 const client = new OpenAI({
     apiKey: process.env.API_KEY,
     baseURL: process.env.API_BASE_URL || API_CONFIG.BASE_URL,
 });
 
+const SubtaskRequestSchema = z.object({
+    taskTitle: z.string().min(1, '任务标题不能为空'),
+});
+
 export async function POST(request: NextRequest) {
     try {
-        const { taskTitle } = await request.json();
+        const body = await request.json();
+        const { taskTitle } = SubtaskRequestSchema.parse(body);
 
-        if (!taskTitle) {
-            return NextResponse.json(
-                { error: 'Task title is required' },
-                { status: 400 }
-            );
+        if (!process.env.API_KEY) {
+            throw ErrorHandler.aiService('AI 服务未配置');
         }
 
         const response = await client.chat.completions.create({
@@ -37,16 +41,15 @@ export async function POST(request: NextRequest) {
             const jsonMatch = text.match(/\[.*\]/s);
             if (jsonMatch) {
                 const subtasks = JSON.parse(jsonMatch[0]) as string[];
-                return NextResponse.json({ subtasks });
+                return ApiResponse.success({ subtasks });
             }
         }
 
-        return NextResponse.json({ subtasks: [] });
+        return ApiResponse.success({ subtasks: [] });
     } catch (error: any) {
-        console.error('Subtask generation error:', error);
-        return NextResponse.json(
-            { subtasks: [] },
-            { status: 200 }
-        );
+        if (error.status === 429) {
+            return ApiResponse.error(ErrorHandler.rateLimit());
+        }
+        return ApiResponse.error(error);
     }
 }

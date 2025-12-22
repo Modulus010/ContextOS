@@ -1,362 +1,308 @@
 /**
  * Supabase Data Service
- * Service layer for all database operations
+ * Service layer for all database operations with improved mapping and error handling
  */
 
 import { createClient } from '@/lib/supabase/client';
-import { Task, FocusSession, Transaction, JournalEntry } from '@/types';
+import {
+    Task,
+    FocusSession,
+    Transaction,
+    JournalEntry,
+    CreateTaskInput,
+    UpdateTaskInput,
+    CreateFocusSessionInput,
+    UpdateFocusSessionInput,
+    CreateTransactionInput,
+    UpdateTransactionInput,
+    CreateJournalEntryInput,
+    UpdateJournalEntryInput,
+} from '@/types';
+import {
+    TaskMapper,
+    FocusSessionMapper,
+    TransactionMapper,
+    JournalEntryMapper
+} from '@/lib/mapping';
+import { ErrorHandler, safeAsync } from '@/lib/errors';
 
 // Tasks Service
 export const tasksService = {
     async getAll(): Promise<Task[]> {
-        const supabase = createClient();
+        return safeAsync(async () => {
+            const supabase = createClient();
 
-        const { data, error } = await supabase
-            .from('tasks')
-            .select('*')
-            .order('created_at', { ascending: false });
+            const { data, error } = await supabase
+                .from('tasks')
+                .select('*')
+                .order('created_at', { ascending: false });
 
-        if (error) throw error;
+            if (error) throw ErrorHandler.database('获取任务列表失败', error);
 
-        return data.map(row => ({
-            id: row.id,
-            title: row.title,
-            status: row.status,
-            priority: row.priority,
-            createdAt: row.created_at,
-            completedAt: row.completed_at,
-            deadline: row.deadline,
-            tags: row.tags || [],
-            subtasks: row.subtasks || [],
-        }));
+            return data.map(row => TaskMapper.fromDb(row));
+        });
     },
 
-    async create(task: Omit<Task, 'id' | 'createdAt'>): Promise<Task> {
-        const supabase = createClient();
+    async create(task: CreateTaskInput): Promise<Task> {
+        return safeAsync(async () => {
+            const supabase = createClient();
 
-        const { data, error } = await supabase
-            .from('tasks')
-            .insert({
-                title: task.title,
-                status: task.status,
-                priority: task.priority,
-                completed_at: task.completedAt,
-                deadline: task.deadline,
-                tags: task.tags,
-                subtasks: task.subtasks || [],
-            })
-            .select()
-            .single();
+            const { data, error } = await supabase
+                .from('tasks')
+                .insert(TaskMapper.toDbInsert(task as any))
+                .select()
+                .single();
 
-        if (error) throw error;
+            if (error) throw ErrorHandler.database('创建任务失败', error);
 
-        return {
-            id: data.id,
-            title: data.title,
-            status: data.status,
-            priority: data.priority,
-            createdAt: data.created_at,
-            completedAt: data.completed_at,
-            tags: data.tags || [],
-            subtasks: data.subtasks || [],
-        };
+            return TaskMapper.fromDb(data);
+        });
     },
 
-    async update(id: string, updates: Partial<Task>): Promise<Task> {
-        const supabase = createClient();
+    async update(updates: UpdateTaskInput): Promise<Task> {
+        return safeAsync(async () => {
+            const supabase = createClient();
 
-        const dbUpdates: any = {};
-        if (updates.title !== undefined) dbUpdates.title = updates.title;
-        if (updates.status !== undefined) dbUpdates.status = updates.status;
-        if (updates.priority !== undefined) dbUpdates.priority = updates.priority;
-        if (updates.completedAt !== undefined) dbUpdates.completed_at = updates.completedAt;
-        if (updates.deadline !== undefined) dbUpdates.deadline = updates.deadline;
-        if (updates.tags !== undefined) dbUpdates.tags = updates.tags;
-        if (updates.subtasks !== undefined) dbUpdates.subtasks = updates.subtasks;
+            const { id, ...updateFields } = updates;
+            const dbUpdates = TaskMapper.toDb(updateFields);
 
-        const { data, error } = await supabase
-            .from('tasks')
-            .update(dbUpdates)
-            .eq('id', id)
-            .select()
-            .single();
+            const { data, error } = await supabase
+                .from('tasks')
+                .update(dbUpdates)
+                .eq('id', id)
+                .select()
+                .single();
 
-        if (error) throw error;
+            if (error) throw ErrorHandler.database('更新任务失败', error);
+            if (!data) throw ErrorHandler.notFound('任务');
 
-        return {
-            id: data.id,
-            title: data.title,
-            status: data.status,
-            priority: data.priority,
-            createdAt: data.created_at,
-            completedAt: data.completed_at,
-            deadline: data.deadline,
-            tags: data.tags || [],
-            subtasks: data.subtasks || [],
-        };
+            return TaskMapper.fromDb(data);
+        });
     },
 
     async delete(id: string): Promise<void> {
-        const supabase = createClient();
+        return safeAsync(async () => {
+            const supabase = createClient();
 
-        const { error } = await supabase
-            .from('tasks')
-            .delete()
-            .eq('id', id);
+            const { error } = await supabase
+                .from('tasks')
+                .delete()
+                .eq('id', id);
 
-        if (error) throw error;
+            if (error) throw ErrorHandler.database('删除任务失败', error);
+        });
     },
 };
 
 // Focus Sessions Service
 export const focusSessionsService = {
     async getAll(): Promise<FocusSession[]> {
-        const supabase = createClient();
+        return safeAsync(async () => {
+            const supabase = createClient();
 
-        const { data, error } = await supabase
-            .from('focus_sessions')
-            .select('*')
-            .order('started_at', { ascending: false });
+            const { data, error } = await supabase
+                .from('focus_sessions')
+                .select('*')
+                .order('started_at', { ascending: false });
 
-        if (error) throw error;
+            if (error) throw ErrorHandler.database('获取专注记录失败', error);
 
-        return data.map(row => ({
-            id: row.id,
-            durationSeconds: row.duration_seconds,
-            taskId: row.task_id,
-            startedAt: row.started_at,
-            completed: row.completed,
-        }));
+            return data.map(row => FocusSessionMapper.fromDb(row));
+        });
     },
 
-    async create(session: Omit<FocusSession, 'id' | 'startedAt'>): Promise<FocusSession> {
-        const supabase = createClient();
+    async create(session: CreateFocusSessionInput): Promise<FocusSession> {
+        return safeAsync(async () => {
+            const supabase = createClient();
 
-        const { data, error } = await supabase
-            .from('focus_sessions')
-            .insert({
-                duration_seconds: session.durationSeconds,
-                task_id: session.taskId,
-                completed: session.completed,
-            })
-            .select()
-            .single();
+            const { data, error } = await supabase
+                .from('focus_sessions')
+                .insert(FocusSessionMapper.toDbInsert(session as any))
+                .select()
+                .single();
 
-        if (error) throw error;
+            if (error) throw ErrorHandler.database('创建专注记录失败', error);
 
-        return {
-            id: data.id,
-            durationSeconds: data.duration_seconds,
-            taskId: data.task_id,
-            startedAt: data.started_at,
-            completed: data.completed,
-        };
+            return FocusSessionMapper.fromDb(data);
+        });
     },
 
-    async update(id: string, updates: Partial<FocusSession>): Promise<FocusSession> {
-        const supabase = createClient();
+    async update(updates: UpdateFocusSessionInput): Promise<FocusSession> {
+        return safeAsync(async () => {
+            const supabase = createClient();
 
-        const dbUpdates: any = {};
-        if (updates.durationSeconds !== undefined) dbUpdates.duration_seconds = updates.durationSeconds;
-        if (updates.completed !== undefined) dbUpdates.completed = updates.completed;
+            const { id, ...updateFields } = updates;
+            const dbUpdates = FocusSessionMapper.toDb(updateFields);
 
-        const { data, error } = await supabase
-            .from('focus_sessions')
-            .update(dbUpdates)
-            .eq('id', id)
-            .select()
-            .single();
+            const { data, error } = await supabase
+                .from('focus_sessions')
+                .update(dbUpdates)
+                .eq('id', id)
+                .select()
+                .single();
 
-        if (error) throw error;
+            if (error) throw ErrorHandler.database('更新专注记录失败', error);
+            if (!data) throw ErrorHandler.notFound('专注记录');
 
-        return {
-            id: data.id,
-            durationSeconds: data.duration_seconds,
-            taskId: data.task_id,
-            startedAt: data.started_at,
-            completed: data.completed,
-        };
+            return FocusSessionMapper.fromDb(data);
+        });
     },
 
     async delete(id: string): Promise<void> {
-        const supabase = createClient();
+        return safeAsync(async () => {
+            const supabase = createClient();
 
-        const { error } = await supabase
-            .from('focus_sessions')
-            .delete()
-            .eq('id', id);
+            const { error } = await supabase
+                .from('focus_sessions')
+                .delete()
+                .eq('id', id);
 
-        if (error) throw error;
+            if (error) throw ErrorHandler.database('删除专注记录失败', error);
+        });
     },
 };
 
 // Transactions Service
 export const transactionsService = {
     async getAll(): Promise<Transaction[]> {
-        const supabase = createClient();
+        return safeAsync(async () => {
+            const supabase = createClient();
 
-        const { data, error } = await supabase
-            .from('transactions')
-            .select('*')
-            .order('timestamp', { ascending: false });
+            const { data, error } = await supabase
+                .from('transactions')
+                .select('*')
+                .order('timestamp', { ascending: false });
 
-        if (error) throw error;
+            if (error) throw ErrorHandler.database('获取交易记录失败', error);
 
-        return data.map(row => ({
-            id: row.id,
-            amount: parseFloat(row.amount),
-            description: row.description,
-            type: row.type,
-            category: row.category,
-            timestamp: row.timestamp,
-        }));
+            return data.map(row => ({
+                ...TransactionMapper.fromDb(row),
+                amount: parseFloat(row.amount),
+            }));
+        });
     },
 
-    async create(transaction: Omit<Transaction, 'id' | 'timestamp'>): Promise<Transaction> {
-        const supabase = createClient();
+    async create(transaction: CreateTransactionInput): Promise<Transaction> {
+        return safeAsync(async () => {
+            const supabase = createClient();
 
-        const { data, error } = await supabase
-            .from('transactions')
-            .insert({
-                amount: transaction.amount,
-                description: transaction.description,
-                type: transaction.type,
-                category: transaction.category,
-            })
-            .select()
-            .single();
+            const { data, error } = await supabase
+                .from('transactions')
+                .insert(TransactionMapper.toDbInsert(transaction as any))
+                .select()
+                .single();
 
-        if (error) throw error;
+            if (error) throw ErrorHandler.database('创建交易记录失败', error);
 
-        return {
-            id: data.id,
-            amount: parseFloat(data.amount),
-            description: data.description,
-            type: data.type,
-            category: data.category,
-            timestamp: data.timestamp,
-        };
+            return {
+                ...TransactionMapper.fromDb(data),
+                amount: parseFloat(data.amount),
+            };
+        });
     },
 
-    async update(id: string, updates: Partial<Transaction>): Promise<Transaction> {
-        const supabase = createClient();
+    async update(updates: UpdateTransactionInput): Promise<Transaction> {
+        return safeAsync(async () => {
+            const supabase = createClient();
 
-        const dbUpdates: any = {};
-        if (updates.amount !== undefined) dbUpdates.amount = updates.amount;
-        if (updates.description !== undefined) dbUpdates.description = updates.description;
-        if (updates.type !== undefined) dbUpdates.type = updates.type;
-        if (updates.category !== undefined) dbUpdates.category = updates.category;
+            const { id, ...updateFields } = updates;
+            const dbUpdates = TransactionMapper.toDb(updateFields);
 
-        const { data, error } = await supabase
-            .from('transactions')
-            .update(dbUpdates)
-            .eq('id', id)
-            .select()
-            .single();
+            const { data, error } = await supabase
+                .from('transactions')
+                .update(dbUpdates)
+                .eq('id', id)
+                .select()
+                .single();
 
-        if (error) throw error;
+            if (error) throw ErrorHandler.database('更新交易记录失败', error);
+            if (!data) throw ErrorHandler.notFound('交易记录');
 
-        return {
-            id: data.id,
-            amount: parseFloat(data.amount),
-            description: data.description,
-            type: data.type,
-            category: data.category,
-            timestamp: data.timestamp,
-        };
+            return {
+                ...TransactionMapper.fromDb(data),
+                amount: parseFloat(data.amount),
+            };
+        });
     },
 
     async delete(id: string): Promise<void> {
-        const supabase = createClient();
+        return safeAsync(async () => {
+            const supabase = createClient();
 
-        const { error } = await supabase
-            .from('transactions')
-            .delete()
-            .eq('id', id);
+            const { error } = await supabase
+                .from('transactions')
+                .delete()
+                .eq('id', id);
 
-        if (error) throw error;
+            if (error) throw ErrorHandler.database('删除交易记录失败', error);
+        });
     },
 };
 
 // Journal Entries Service
 export const journalEntriesService = {
     async getAll(): Promise<JournalEntry[]> {
-        const supabase = createClient();
+        return safeAsync(async () => {
+            const supabase = createClient();
 
-        const { data, error } = await supabase
-            .from('journal_entries')
-            .select('*')
-            .order('timestamp', { ascending: false });
+            const { data, error } = await supabase
+                .from('journal_entries')
+                .select('*')
+                .order('timestamp', { ascending: false });
 
-        if (error) throw error;
+            if (error) throw ErrorHandler.database('获取日志记录失败', error);
 
-        return data.map(row => ({
-            id: row.id,
-            content: row.content,
-            mood: row.mood,
-            timestamp: row.timestamp,
-            aiReflection: row.ai_reflection,
-        }));
+            return data.map(row => JournalEntryMapper.fromDb(row));
+        });
     },
 
-    async create(entry: Omit<JournalEntry, 'id' | 'timestamp'>): Promise<JournalEntry> {
-        const supabase = createClient();
+    async create(entry: CreateJournalEntryInput): Promise<JournalEntry> {
+        return safeAsync(async () => {
+            const supabase = createClient();
 
-        const { data, error } = await supabase
-            .from('journal_entries')
-            .insert({
-                content: entry.content,
-                mood: entry.mood,
-                ai_reflection: entry.aiReflection,
-            })
-            .select()
-            .single();
+            const { data, error } = await supabase
+                .from('journal_entries')
+                .insert(JournalEntryMapper.toDbInsert(entry as any))
+                .select()
+                .single();
 
-        if (error) throw error;
+            if (error) throw ErrorHandler.database('创建日志记录失败', error);
 
-        return {
-            id: data.id,
-            content: data.content,
-            mood: data.mood,
-            timestamp: data.timestamp,
-            aiReflection: data.ai_reflection,
-        };
+            return JournalEntryMapper.fromDb(data);
+        });
     },
 
-    async update(id: string, updates: Partial<JournalEntry>): Promise<JournalEntry> {
-        const supabase = createClient();
+    async update(updates: UpdateJournalEntryInput): Promise<JournalEntry> {
+        return safeAsync(async () => {
+            const supabase = createClient();
 
-        const dbUpdates: any = {};
-        if (updates.content !== undefined) dbUpdates.content = updates.content;
-        if (updates.mood !== undefined) dbUpdates.mood = updates.mood;
-        if (updates.aiReflection !== undefined) dbUpdates.ai_reflection = updates.aiReflection;
+            const { id, ...updateFields } = updates;
+            const dbUpdates = JournalEntryMapper.toDb(updateFields);
 
-        const { data, error } = await supabase
-            .from('journal_entries')
-            .update(dbUpdates)
-            .eq('id', id)
-            .select()
-            .single();
+            const { data, error } = await supabase
+                .from('journal_entries')
+                .update(dbUpdates)
+                .eq('id', id)
+                .select()
+                .single();
 
-        if (error) throw error;
+            if (error) throw ErrorHandler.database('更新日志记录失败', error);
+            if (!data) throw ErrorHandler.notFound('日志记录');
 
-        return {
-            id: data.id,
-            content: data.content,
-            mood: data.mood,
-            timestamp: data.timestamp,
-            aiReflection: data.ai_reflection,
-        };
+            return JournalEntryMapper.fromDb(data);
+        });
     },
 
     async delete(id: string): Promise<void> {
-        const supabase = createClient();
+        return safeAsync(async () => {
+            const supabase = createClient();
 
-        const { error } = await supabase
-            .from('journal_entries')
-            .delete()
-            .eq('id', id);
+            const { error } = await supabase
+                .from('journal_entries')
+                .delete()
+                .eq('id', id);
 
-        if (error) throw error;
+            if (error) throw ErrorHandler.database('删除日志记录失败', error);
+        });
     },
 };

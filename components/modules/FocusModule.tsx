@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FocusSession, Task } from '@/types';
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Clock01Icon, PlayIcon, PauseIcon, RefreshIcon } from "@hugeicons/core-free-icons";
-import { getStartOfDay } from '@/utils';
+import { startOfDay } from 'date-fns';
 import { useCreateFocusSession } from '@/hooks/useSupabaseData';
 import { Card, CardContent } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
@@ -200,8 +200,8 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, tasks }) => 
                                 onClick={toggleTimer}
                                 size="lg"
                                 className={`px-8 h-14 rounded-full font-semibold transition-all ${isActive
-                                        ? 'bg-secondary hover:bg-secondary/80'
-                                        : 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/30'
+                                    ? 'bg-secondary hover:bg-secondary/80'
+                                    : 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/30'
                                     }`}
                             >
                                 <HugeiconsIcon
