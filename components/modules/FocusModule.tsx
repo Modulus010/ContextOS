@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { FocusSession, Task } from '@/types';
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Clock01Icon, PlayIcon, PauseIcon, RefreshIcon } from "@hugeicons/core-free-icons";
+import { Clock01Icon, PlayIcon, PauseIcon, RefreshIcon, ArrowUp01Icon } from "@hugeicons/core-free-icons";
 import { startOfDay } from 'date-fns';
+import { useTimer, useStopwatch } from 'react-timer-hook';
 import { useCreateFocusSession } from '@/hooks/useSupabaseData';
 import { Card, CardContent } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
@@ -10,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 
 interface FocusModuleProps {
     sessions: FocusSession[];
@@ -18,88 +18,163 @@ interface FocusModuleProps {
 }
 
 export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, tasks }) => {
-    const [isActive, setIsActive] = useState(false);
     const [hasStarted, setHasStarted] = useState(false);
     const [duration, setDuration] = useState(25);
-    const [timeLeft, setTimeLeft] = useState(25 * 60);
     const [selectedTaskId, setSelectedTaskId] = useState<string>('');
+    const [isCountUp, setIsCountUp] = useState(false);
 
     const createSession = useCreateFocusSession();
 
-    const formatDuration = (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    const getExpiryTimestamp = () => {
+        const time = new Date();
+        time.setSeconds(time.getSeconds() + duration * 60);
+        return time;
     };
 
-    // Timer countdown effect
-    useEffect(() => {
-        let interval: NodeJS.Timeout | undefined;
+    // 倒计时器
+    const {
+        seconds: timerSeconds,
+        minutes: timerMinutes,
+        hours: timerHours,
+        isRunning: timerIsRunning,
+        start: timerStart,
+        pause: timerPause,
+        restart: timerRestart,
+    } = useTimer({
+        expiryTimestamp: getExpiryTimestamp(),
+        onExpire: () => handleCountdownExpire(),
+        autoStart: false,
+    });
 
-        if (isActive && timeLeft > 0) {
-            interval = setInterval(() => {
-                setTimeLeft((time) => {
-                    if (time <= 1) {
-                        setIsActive(false);
-                        return 0;
-                    }
-                    return time - 1;
-                });
-            }, 1000);
+    // 正计时器
+    const {
+        seconds: stopwatchSeconds,
+        minutes: stopwatchMinutes,
+        hours: stopwatchHours,
+        isRunning: stopwatchIsRunning,
+        start: stopwatchStart,
+        pause: stopwatchPause,
+        reset: stopwatchReset,
+    } = useStopwatch({ autoStart: false });
+
+    const formatDuration = (h: number, m: number, s: number) => {
+        if (h > 0) {
+            return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    };
+
+    // 当 duration 改变时，更新倒计时器（仅在未开始时）
+    useEffect(() => {
+        if (!hasStarted) {
+            if (duration === 0) {
+                // duration 为 0 时，直接进入正计时模式
+                setIsCountUp(true);
+                stopwatchReset(undefined, false);
+            } else {
+                // 有时长时，设置倒计时模式
+                setIsCountUp(false);
+                const time = new Date();
+                time.setSeconds(time.getSeconds() + duration * 60);
+                timerRestart(time, false);
+            }
+        }
+    }, [duration, hasStarted]);
+
+    const handleCountdownExpire = () => {
+        // 倒计时结束，发送通知
+        if (Notification.permission === 'granted') {
+            new Notification("Nexus 专注", { body: "倒计时结束！现在开始正计时。" });
         }
 
-        return () => {
-            if (interval) clearInterval(interval);
-        };
-    }, [isActive]);
+        // 切换到正计时模式
+        setIsCountUp(true);
 
-    // Complete session when timer reaches 0
-    useEffect(() => {
-        if (timeLeft === 0 && !isActive) {
-            completeSession();
-        }
-    }, [timeLeft, isActive]);
-
-    // Reset timeLeft when duration changes (only when not active)
-    useEffect(() => {
-        if (!isActive) {
-            setTimeLeft(duration * 60);
-        }
-    }, [duration]);
+        // 启动正计时器
+        stopwatchReset();
+        stopwatchStart();
+    };
 
     const completeSession = async () => {
+        // 计算实际专注时长（秒）
+        let actualDurationSeconds: number;
+
+        if (isCountUp) {
+            // 正计时模式：倒计时时长 + 正计时已过时长
+            const countUpElapsed = stopwatchHours * 3600 + stopwatchMinutes * 60 + stopwatchSeconds;
+            actualDurationSeconds = duration * 60 + countUpElapsed;
+        } else {
+            // 倒计时模式：使用已过的时长
+            const elapsedSeconds = duration * 60 - (timerMinutes * 60 + timerSeconds);
+            actualDurationSeconds = elapsedSeconds;
+        }
+
         await createSession.mutateAsync({
-            durationSeconds: duration * 60,
+            durationSeconds: actualDurationSeconds,
             completed: true,
             taskId: selectedTaskId || undefined
         });
 
-        setSelectedTaskId(''); // Reset task selection after completion
-        if (Notification.permission === 'granted') {
-            new Notification("Nexus 专注", { body: "专注时段结束。休息一下吧。" });
-        }
+        setSelectedTaskId('');
     };
 
     const toggleTimer = () => {
-        setIsActive(!isActive);
-        if (!isActive) {
-            setHasStarted(true); // Mark that timer has been started
+        if (!hasStarted) {
+            setHasStarted(true);
+            if (Notification.permission !== 'granted') {
+                Notification.requestPermission();
+            }
         }
-        if (!isActive && Notification.permission !== 'granted') {
-            Notification.requestPermission();
+
+        if (isCountUp) {
+            // 正计时模式
+            if (stopwatchIsRunning) {
+                stopwatchPause();
+            } else {
+                stopwatchStart();
+            }
+        } else {
+            // 倒计时模式
+            if (timerIsRunning) {
+                timerPause();
+            } else {
+                timerStart();
+            }
         }
     };
 
-    const resetTimer = () => {
-        setIsActive(false);
-        setHasStarted(false); // Reset the started flag
-        setTimeLeft(duration * 60);
+    const resetTimer = async () => {
+        if (hasStarted) {
+            // 完成当前会话
+            await completeSession();
+
+            if (Notification.permission === 'granted') {
+                new Notification("Nexus 专注", { body: "专注时段已结束并保存。" });
+            }
+        }
+
+        // 重置所有状态
+        setHasStarted(false);
+        if (duration === 0) {
+            setIsCountUp(true);
+            stopwatchReset(undefined, false);
+        } else {
+            setIsCountUp(false);
+            stopwatchReset(undefined, false);
+            const time = new Date();
+            time.setSeconds(time.getSeconds() + duration * 60);
+            timerRestart(time, false);
+        }
     };
 
     const activeTasks = tasks.filter(t => t.status !== 'done');
-    const progress = ((duration * 60 - timeLeft) / (duration * 60)) * 100;
-    const PRESETS = [15, 25, 50, 90];
-    const CIRCUMFERENCE = 2 * Math.PI * 100;
+    const PRESETS = [0, 15, 25, 50, 90];
+
+    // 计算当前显示的时间（倒计时或正计时）
+    const displayHours = isCountUp ? stopwatchHours : timerHours;
+    const displayMinutes = isCountUp ? stopwatchMinutes : timerMinutes;
+    const displaySeconds = isCountUp ? stopwatchSeconds : timerSeconds;
+    const isRunning = isCountUp ? stopwatchIsRunning : timerIsRunning;
 
     const focusMinutesToday = Math.floor(
         sessions.filter(s => {
@@ -163,34 +238,11 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, tasks }) => 
                     {/* Timer UI */}
                     <div className="flex flex-col items-center space-y-8">
                         <div className="relative w-64 h-64 flex items-center justify-center">
-                            <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 256 256">
-                                <circle
-                                    cx="128"
-                                    cy="128"
-                                    r="112"
-                                    stroke="currentColor"
-                                    strokeWidth="12"
-                                    fill="transparent"
-                                    className="text-muted/30"
-                                />
-                                <circle
-                                    cx="128"
-                                    cy="128"
-                                    r="112"
-                                    stroke="currentColor"
-                                    strokeWidth="12"
-                                    fill="transparent"
-                                    strokeDasharray={CIRCUMFERENCE}
-                                    strokeDashoffset={CIRCUMFERENCE * (1 - progress / 100)}
-                                    className="text-amber-500 transition-all duration-1000 ease-linear"
-                                    strokeLinecap="round"
-                                />
-                            </svg>
+
                             <div className="text-center z-10">
-                                <div className="text-6xl font-mono font-bold mb-2">
-                                    {formatDuration(timeLeft)}
+                                <div className="text-6xl font-mono font-bold">
+                                    {formatDuration(displayHours, displayMinutes, displaySeconds)}
                                 </div>
-                                <Progress value={progress} className="w-32 h-1" />
                             </div>
                         </div>
 
@@ -199,16 +251,16 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, tasks }) => 
                             <Button
                                 onClick={toggleTimer}
                                 size="lg"
-                                className={`px-8 h-14 rounded-full font-semibold transition-all ${isActive
+                                className={`px-8 h-14 rounded-full font-semibold transition-all ${isRunning
                                     ? 'bg-secondary hover:bg-secondary/80'
                                     : 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/30'
                                     }`}
                             >
                                 <HugeiconsIcon
-                                    icon={isActive ? PauseIcon : PlayIcon}
+                                    icon={isRunning ? PauseIcon : PlayIcon}
                                     className="w-5 h-5 mr-2"
                                 />
-                                {isActive ? '暂停' : '开始专注'}
+                                {isRunning ? '暂停' : '开始专注'}
                             </Button>
                             <Button
                                 onClick={resetTimer}
@@ -218,7 +270,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, tasks }) => 
                                 disabled={!hasStarted}
                             >
                                 <HugeiconsIcon icon={RefreshIcon} className="w-5 h-5 mr-2" />
-                                重置
+                                结束并重置
                             </Button>
                         </div>
                     </div>
@@ -229,7 +281,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, tasks }) => 
                     <div className={`w-full space-y-4 transition-opacity duration-300 ${hasStarted ? 'opacity-40 pointer-events-none' : 'opacity-100'
                         }`}>
                         <label className="block text-sm font-medium text-center">
-                            专注时长：{duration} 分钟
+                            {duration === 0 ? '正计时模式' : `专注时长：${duration} 分钟`}
                         </label>
 
                         <div className="flex justify-center gap-2 mb-4">
@@ -242,7 +294,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, tasks }) => 
                                     size="sm"
                                     className={duration === preset ? 'bg-amber-500 hover:bg-amber-600' : ''}
                                 >
-                                    {preset}分
+                                    {preset === 0 ? '正计时' : `${preset}分`}
                                 </Button>
                             ))}
                         </div>
@@ -253,7 +305,7 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, tasks }) => 
                                 const newVal = Array.isArray(val) ? val[0] : val;
                                 setDuration(Number(newVal));
                             }}
-                            min={5}
+                            min={0}
                             max={120}
                             step={5}
                             aria-label="专注时长（分钟）"
@@ -261,15 +313,6 @@ export const FocusModule: React.FC<FocusModuleProps> = ({ sessions, tasks }) => 
                             className="w-full"
                         />
                     </div>
-                </CardContent>
-            </Card>
-
-            {/* Info Card */}
-            <Card className="bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-900/50">
-                <CardContent className="p-4">
-                    <p className="text-sm text-center text-amber-900 dark:text-amber-200">
-                        💡 专注模式将帮助你进入心流状态，建议每次至少专注 25 分钟
-                    </p>
                 </CardContent>
             </Card>
         </div>

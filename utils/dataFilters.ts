@@ -2,7 +2,7 @@
  * Data Filter and Calculation Utility Functions
  */
 
-import { Task, FocusSession, Transaction, JournalEntry, TaskStatus, TransactionType } from '../types';
+import { Task, FocusSession, Transaction, JournalEntry, TaskStatus, TransactionType } from '@/types';
 import { startOfDay } from 'date-fns';
 
 /**

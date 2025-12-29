@@ -48,16 +48,15 @@ export function AppSidebar() {
     const pathname = usePathname()
 
     return (
-        <Sidebar>
+        <Sidebar collapsible="icon">
             <SidebarHeader >
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     Nexus
                 </h1>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Context OS</p>
             </SidebarHeader>
             <SidebarContent>
                 <SidebarGroup>
-                    <SidebarGroupLabel>Application</SidebarGroupLabel>
+                    <SidebarGroupLabel>Context OS</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
                             {items.map((item) => (

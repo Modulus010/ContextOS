@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Task, TaskStatus, TaskPriority, type TaskPriorityType, type Subtask } from '../../types';
+import { Task, TaskStatus, TaskPriority, type TaskPriorityType, type Subtask } from '@/types';
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon, Task01Icon, Delete02Icon, FlashIcon, ArrowDown01Icon, ArrowUp01Icon, Clock01Icon } from "@hugeicons/core-free-icons";
-import { generateSubtasks } from '../../services/aiService';
+import { generateSubtasks } from '@/services/aiService';
 import { format } from 'date-fns';
 import { useCreateTask, useUpdateTask, useDeleteTask, useSortedTasks } from '@/hooks';
 import { InlineEditor } from '@/components/common/InlineEditor';
