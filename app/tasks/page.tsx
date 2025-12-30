@@ -1,19 +1,15 @@
-'use client';
-
 import React from 'react';
-import { useTasks } from '@/hooks/useSupabaseData';
+import { Metadata } from 'next';
+import { getTasks } from '@/services/serverDataService';
 import { TaskModule } from '@/components/modules/TaskModule';
 
-export default function TasksPage() {
-    const { data: tasks = [], isLoading } = useTasks();
+export const metadata: Metadata = {
+    title: '任务管理 - Nexus',
+    description: '管理您的任务和待办事项',
+};
 
-    if (isLoading) {
-        return (
-            <div className="p-4 md:p-8 max-w-7xl mx-auto flex items-center justify-center h-full">
-                <p className="text-muted-foreground">加载中...</p>
-            </div>
-        );
-    }
+export default async function TasksPage() {
+    const tasks = await getTasks();
 
     return (
         <TaskModule tasks={tasks} />
