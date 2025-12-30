@@ -47,11 +47,10 @@ export const TransactionList: React.FC<TransactionListProps> = ({ transactions }
                                 </div>
                                 <Badge
                                     variant="outline"
-                                    className={`ml-3 font-mono text-base ${
-                                        t.type === TransactionType.INCOME
+                                    className={`ml-3 font-mono text-base ${t.type === TransactionType.INCOME
                                             ? 'text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20'
                                             : 'text-rose-600 border-rose-200 bg-rose-50 dark:bg-rose-900/20'
-                                    }`}
+                                        }`}
                                 >
                                     {t.type === TransactionType.INCOME ? '+' : '-'}¥{t.amount.toFixed(2)}
                                 </Badge>

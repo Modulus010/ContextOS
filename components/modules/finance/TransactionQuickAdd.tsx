@@ -39,11 +39,10 @@ export const TransactionQuickAdd: React.FC = () => {
                             type="button"
                             onClick={() => setType(TransactionType.EXPENSE)}
                             variant={type === TransactionType.EXPENSE ? "default" : "outline"}
-                            className={`flex-1 ${
-                                type === TransactionType.EXPENSE
+                            className={`flex-1 ${type === TransactionType.EXPENSE
                                     ? 'bg-rose-500 hover:bg-rose-600 text-white'
                                     : 'hover:bg-rose-50 hover:text-rose-600'
-                            }`}
+                                }`}
                         >
                             💸 支出
                         </Button>
@@ -51,11 +50,10 @@ export const TransactionQuickAdd: React.FC = () => {
                             type="button"
                             onClick={() => setType(TransactionType.INCOME)}
                             variant={type === TransactionType.INCOME ? "default" : "outline"}
-                            className={`flex-1 ${
-                                type === TransactionType.INCOME
+                            className={`flex-1 ${type === TransactionType.INCOME
                                     ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
                                     : 'hover:bg-emerald-50 hover:text-emerald-600'
-                            }`}
+                                }`}
                         >
                             💰 收入
                         </Button>

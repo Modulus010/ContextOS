@@ -34,7 +34,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({ onEntryCreated }) 
         });
 
         setContent('');
-        
+
         const reflection = await analyzeJournalEntry(content, mood);
 
         await updateEntry.mutateAsync({

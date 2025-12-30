@@ -23,11 +23,10 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({ selectedMood, onMood
                         key={m.value}
                         type="button"
                         onClick={() => onMoodSelect(m.value)}
-                        className={`w-14 h-14 rounded-full text-2xl border-2 transition-all hover:scale-110 active:scale-95 ${
-                            selectedMood === m.value
+                        className={`w-14 h-14 rounded-full text-2xl border-2 transition-all hover:scale-110 active:scale-95 ${selectedMood === m.value
                                 ? `${m.color} scale-110 shadow-md`
                                 : 'border-muted opacity-40 hover:opacity-100 hover:border-muted-foreground'
-                        }`}
+                            }`}
                         aria-label={m.value}
                     >
                         {m.label}

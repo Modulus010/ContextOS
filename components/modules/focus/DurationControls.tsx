@@ -16,9 +16,8 @@ export const DurationControls: React.FC<DurationControlsProps> = ({
     presets
 }) => {
     return (
-        <div className={`w-full space-y-4 transition-opacity duration-300 ${
-            disabled ? 'opacity-40 pointer-events-none' : 'opacity-100'
-        }`}>
+        <div className={`w-full space-y-4 transition-opacity duration-300 ${disabled ? 'opacity-40 pointer-events-none' : 'opacity-100'
+            }`}>
             <label className="block text-sm font-medium text-center">
                 {duration === 0 ? '正计时模式' : `专注时长：${duration} 分钟`}
             </label>

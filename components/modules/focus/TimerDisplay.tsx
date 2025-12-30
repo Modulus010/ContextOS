@@ -44,11 +44,10 @@ export const TimerDisplay: React.FC<TimerDisplayProps> = ({
                 <Button
                     onClick={onToggle}
                     size="lg"
-                    className={`px-8 h-14 rounded-full font-semibold transition-all ${
-                        isRunning
+                    className={`px-8 h-14 rounded-full font-semibold transition-all ${isRunning
                             ? 'bg-secondary hover:bg-secondary/80'
                             : 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/30'
-                    }`}
+                        }`}
                 >
                     <HugeiconsIcon
                         icon={isRunning ? PauseIcon : PlayIcon}
