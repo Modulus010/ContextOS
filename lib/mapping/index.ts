@@ -70,11 +70,10 @@ export const FocusSessionMapper = {
         return result;
     },
 
-    toDbInsert(session: Omit<FocusSession, 'id'>): any {
+    toDbInsert(session: Omit<FocusSession, 'id' | 'startedAt'>): any {
         return {
             duration_seconds: session.durationSeconds,
             task_id: session.taskId,
-            started_at: session.startedAt,
             completed: session.completed,
         };
     },
@@ -102,13 +101,12 @@ export const TransactionMapper = {
         return result;
     },
 
-    toDbInsert(transaction: Omit<Transaction, 'id'>): any {
+    toDbInsert(transaction: Omit<Transaction, 'id' | 'timestamp'>): any {
         return {
             amount: transaction.amount,
             description: transaction.description,
             type: transaction.type,
             category: transaction.category,
-            timestamp: transaction.timestamp,
         };
     },
 };
@@ -133,11 +131,10 @@ export const JournalEntryMapper = {
         return result;
     },
 
-    toDbInsert(entry: Omit<JournalEntry, 'id'>): any {
+    toDbInsert(entry: Omit<JournalEntry, 'id' | 'timestamp'>): any {
         return {
             content: entry.content,
             mood: entry.mood,
-            timestamp: entry.timestamp,
             ai_reflection: entry.aiReflection,
         };
     },

@@ -1,5 +1,5 @@
 /**
- * Dashboard Component
+ * Dashboard Client Component
  * Handles interactive features and AI insights
  */
 'use client';
@@ -8,11 +8,10 @@ import React, { useEffect, useState } from 'react';
 import { GlobalState, Task, FocusSession, Transaction, JournalEntry } from '@/types';
 import { generateContextualInsight } from '@/services/aiService';
 import { useDailyStats, useRecentActivities } from '@/hooks';
-import { HugeiconsIcon } from "@hugeicons/react";
 import { Task01Icon, Clock01Icon, Wallet01Icon } from "@hugeicons/core-free-icons";
-import { AIInsightCard } from './Dashboard/AIInsightCard';
-import { StatCard } from './Dashboard/StatCard';
-import { ActivityFeed } from './Dashboard/ActivityFeed';
+import { AIInsightCard } from './AIInsightCard';
+import { StatCard } from './StatCard';
+import { ActivityFeed } from './ActivityFeed';
 
 interface DashboardProps {
     tasks: Task[];
